@@ -9,10 +9,14 @@
 [![OpenCV](https://img.shields.io/badge/OpenCV-video-5C3EE8?style=flat-square&logo=opencv)](https://opencv.org/)
 [![PIL](https://img.shields.io/badge/PIL-pixel--art-orange?style=flat-square)](https://pillow.readthedocs.io/)
 
-Pipeline completamente automatizado que genera un podcast y vídeo diario de análisis macroeconómico en español, desde la ingesta de noticias hasta la publicación final — sin intervención humana.
+---
+**Macro Diario** es un pipeline automatizado diseñado para leer fuentes de información financieras (RSS), filtrar las noticias más relevantes, realizar un estricto control de calidad periodístico, redactar guiones optimizados para su lectura fonética, buscar/validar recursos multimedia y compilar un episodio en formato de video listo para su difusión.
 
 ---
 
+
+
+---
 ## ¿Qué hace?
 
 Cada día, el pipeline ejecuta el ciclo completo de forma autónoma:
@@ -87,15 +91,18 @@ macro-diario/
 pip install -r requirements.txt
 
 # Ollama debe estar corriendo con los modelos descargados
-ollama pull qwen2.5:7b
-ollama pull gemma3:12b
+ollama pull qwen2.5:7b-instruct-q4_K_M
+ollama pull gemma2:9b-instruct-q4_K_M
+ollama pull llama3.1:8b-instruct-q4_K_M
+ollama pull llava:7b
 
 # Ejecutar el pipeline completo
 python main.py
 ```
-
+---
 > El pipeline requiere Chrome instalado para el scraping de imágenes vía Selenium.
-
+> 
+> Requiere FFmpeg instalado y configurado en el PATH (o el binario ejecutable ffmpeg.exe ubicado en la raíz del proyecto).
 ---
 
 ## Contexto editorial
