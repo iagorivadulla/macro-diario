@@ -1,0 +1,7 @@
+feedparser
+pydantic
+ollama
+lxml
+newspaper3k
+lxml_html_clean
+supertonic

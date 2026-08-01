@@ -100,11 +100,11 @@ def flow():
     # --------------------------------------------------------------
     # 8. Delete temporal images
     #---------------------------------------------------------------
-
+    '''
     for i in os.listdir(IMAGES_PATH):
         path = os.path.join(IMAGES_PATH, i)
         os.unlink(path)
-
+    '''
 
 def flow_test():
 

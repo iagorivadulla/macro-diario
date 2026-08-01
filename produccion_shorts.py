@@ -21,10 +21,10 @@ OUTPUT = ROOT / "video" / "short.mp4"
 
 FPS = 25
 VIDEO_H = 1672
-VIDEO_W = 941
+VIDEO_W = 940
 
-EYE_CENTER = (467, 852)
-MOUTH_CENTER = (469, 913)
+EYE_CENTER = (463, 853)
+MOUTH_CENTER = (463, 916)
 
 EYE_SCALE = 0.21
 MOUTH_SCALE = 0.21
@@ -113,9 +113,9 @@ def eliminar_fondo_piel(pil_img):
     # Rango del tono de piel beige/grisáceo a eliminar en la hoja:
     # Ajustado a los valores exactos de la piel clara de presentador_no_fondo_2
     mask_piel = (
-            (r >= 140) & (r <= 230) &
-            (g >= 110) & (g <= 180) &
-            (b >= 80) & (b <= 150)
+            (r >= 130) & (r <= 240) &
+            (g >= 100) & (g <= 190) &
+            (b >= 70) & (b <= 160)
     )
 
     # Ponemos el canal Alpha a 0 (transparente) en la piel del recuadro
