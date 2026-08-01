@@ -1044,6 +1044,319 @@ def image_agent_v8(script_dict: dict) -> dict:
 
     return script_dict
 
+def image_agent_v9(script_dict: dict, headless: bool = True) -> dict:
+    """
+    Para cada sección de noticia, visita la URL original (section['link'])
+    y captura una imagen del logo del medio, el titular y la foto de portada.
+    """
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
+
+    ASSETS_DIR = Path(__file__).parent / "assets" / "news_images"
+    ASSETS_DIR.mkdir(parents=True, exist_ok=True)
+
+    VIEWPORT_W = 1280
+    VIEWPORT_H = 1600
+    PADDING_TOP = 12
+    PADDING_BOTTOM = 40
+    PADDING_SIDES = 16       # margen lateral alrededor del contenido real
+    MAX_CROP_HEIGHT = 1100
+    CONSENT_HOSTS = ("consent.", "guce.", "consent-page")
+    ACCEPT_TEXTS = ["aceptar todo", "aceptar", "accept all", "agree", "entendido", "de acuerdo", "i agree"]
+    BOT_PHRASES = [
+        "verify you are human", "are you a robot", "please verify you are human",
+        "checking your browser", "access denied", "attention required",
+        "unusual traffic", "enable javascript and cookies",
+    ]
+
+    def _crear_driver():
+        options = uc.ChromeOptions()
+        if headless:
+            options.add_argument("--headless=new")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+        options.add_argument(f"--window-size={VIEWPORT_W},{VIEWPORT_H}")
+        driver = uc.Chrome(options=options, version_main=150)
+        driver.set_page_load_timeout(25)
+        return driver
+
+    def _click_por_texto(driver) -> bool:
+        try:
+            for b in driver.find_elements(By.TAG_NAME, "button"):
+                txt = (b.text or "").strip().lower()
+                if txt and any(p in txt for p in ACCEPT_TEXTS):
+                    b.click()
+                    sleep(0.8)
+                    return True
+        except Exception:
+            pass
+        return False
+
+    def _aceptar_consentimiento(driver) -> bool:
+        known_selectors = [
+            "#onetrust-accept-btn-handler",
+            "button[name='agree']",
+            "#consent-page button[type='submit']",
+            "button[aria-label*='Accept']",
+            "button[aria-label*='Aceptar']",
+        ]
+        for sel in known_selectors:
+            try:
+                btn = WebDriverWait(driver, 1.5).until(EC.element_to_be_clickable((By.CSS_SELECTOR, sel)))
+                btn.click()
+                sleep(0.8)
+                return True
+            except Exception:
+                continue
+        if _click_por_texto(driver):
+            return True
+        try:
+            for frame in driver.find_elements(By.TAG_NAME, "iframe"):
+                try:
+                    driver.switch_to.frame(frame)
+                    if _click_por_texto(driver):
+                        driver.switch_to.default_content()
+                        return True
+                    driver.switch_to.default_content()
+                except Exception:
+                    driver.switch_to.default_content()
+        except Exception:
+            pass
+        return False
+
+    def _salir_de_consentimiento(driver, s_type: str) -> bool:
+        if not any(h in driver.current_url for h in CONSENT_HOSTS):
+            return True
+        for intento in range(2):
+            _aceptar_consentimiento(driver)
+            try:
+                WebDriverWait(driver, 8).until(
+                    lambda d: not any(h in d.current_url for h in CONSENT_HOSTS)
+                )
+                return True
+            except Exception:
+                print(f"  [{s_type}] ⚠ intento {intento + 1}/2 aceptando consentimiento sin éxito...")
+                continue
+        print(f"  [{s_type}] ✗ atascado en consentimiento tras 2 intentos: {driver.current_url[:70]}")
+        return False
+
+    def _es_pagina_antibot(driver) -> bool:
+        try:
+            body_text = driver.find_element(By.TAG_NAME, "body").text.lower()
+            return any(p in body_text for p in BOT_PHRASES)
+        except Exception:
+            return False
+
+    def _esperar_resolucion_antibot(driver, s_type: str, intentos: int = 3, espera: float = 3.0) -> bool:
+        """
+        Muchos retos anti-bot (Cloudflare, IBD...) se resuelven solos vía JS
+        tras unos segundos. Reintenta la comprobación varias veces antes de
+        descartar la sección, en vez de descartar al primer vistazo.
+        Devuelve True si la página deja de ser un muro anti-bot.
+        """
+        for intento in range(intentos):
+            if not _es_pagina_antibot(driver):
+                return True
+            print(f"  [{s_type}] ⏳ posible verificación anti-bot, esperando... ({intento + 1}/{intentos})")
+            sleep(espera)
+        return not _es_pagina_antibot(driver)
+
+    # ------------------------------------------------------------------
+    # ESTRATEGIA 1 — Elemento real de Yahoo Finance (.cover-wrap)
+    # ------------------------------------------------------------------
+    def _recorte_por_cover_wrap(driver):
+        js = """
+        function unionRect(els) {
+            let top = Infinity, bottom = -Infinity, left = Infinity, right = -Infinity;
+            for (const el of els) {
+                const r = el.getBoundingClientRect();
+                if (r.width === 0 && r.height === 0) continue;
+                top = Math.min(top, r.top);
+                bottom = Math.max(bottom, r.bottom);
+                left = Math.min(left, r.left);
+                right = Math.max(right, r.right);
+            }
+            return top === Infinity ? null : {top, bottom, left, right};
+        }
+
+        let covers = Array.from(document.querySelectorAll('.cover-wrap')).slice(0, 2);
+        if (covers.length === 0) return null;
+
+        if (covers.length === 1) {
+            let videoEl = document.querySelector(
+                '[data-testid="article-video-player"], [class*="video-player"], [class*="cover-video"]'
+            );
+            if (videoEl) covers.push(videoEl);
+        }
+
+        return unionRect(covers);
+        """
+        try:
+            return driver.execute_script(js)
+        except Exception:
+            return None
+
+    # ------------------------------------------------------------------
+    # ESTRATEGIA 2 — Fallback genérico (h1 + primera imagen grande)
+    # ------------------------------------------------------------------
+    def _recorte_generico(driver):
+        js = """
+        function esAnuncio(el) {
+            let node = el;
+            for (let i = 0; i < 6 && node; i++) {
+                const cls = (node.className || '').toString().toLowerCase();
+                const id = (node.id || '').toLowerCase();
+                const testId = (node.getAttribute && node.getAttribute('data-testid') || '').toLowerCase();
+                const blob = cls + ' ' + id + ' ' + testId;
+                if (/(^|[-_ ])(ad|ads|advert|sponsor|promo)([-_ ]|$)/.test(blob)) return true;
+                node = node.parentElement;
+            }
+            return false;
+        }
+
+        let h1 = document.querySelector('h1');
+        if (!h1) return null;
+        let h1Rect = h1.getBoundingClientRect();
+
+        let bestTop = null, bestDist = Infinity, bestLeft = h1Rect.left;
+        let candidates = Array.from(document.querySelectorAll('img, span, div, a, p'));
+        for (const el of candidates) {
+            if (el === h1 || el.contains(h1)) continue;
+            const r = el.getBoundingClientRect();
+            if (r.width === 0 || r.height === 0) continue;
+            const gap = h1Rect.top - r.bottom;
+            if (gap < 0 || gap > 200) continue;
+            if (Math.abs(r.left - h1Rect.left) > 80) continue;
+
+            const isLogoImg = el.tagName === 'IMG' && r.height <= 60 && r.height >= 10;
+            const text = (el.innerText || '').trim();
+            const isKickerText = text.length > 0 && text.length <= 40 &&
+                                  text === text.toUpperCase() && el.children.length === 0;
+
+            if ((isLogoImg || isKickerText) && gap < bestDist) {
+                bestDist = gap;
+                bestTop = r.top;
+                bestLeft = Math.min(bestLeft, r.left);
+            }
+        }
+        let topY = bestTop !== null ? bestTop : h1Rect.top;
+
+        let ogMeta = document.querySelector('meta[property="og:image"]');
+        let ogUrl = ogMeta ? ogMeta.content : null;
+        let ogHash = ogUrl ? ogUrl.split('/').pop().split('?')[0].split('.')[0] : null;
+
+        let imgs = Array.from(document.querySelectorAll('img'))
+            .filter(i => i.naturalWidth >= 300 && i.naturalHeight >= 200)
+            .filter(i => !esAnuncio(i));
+
+        let heroImg = null;
+        if (ogHash) heroImg = imgs.find(i => i.src && i.src.includes(ogHash)) || null;
+        if (!heroImg && imgs.length) heroImg = imgs[0];
+
+        let heroRect = heroImg ? heroImg.getBoundingClientRect() : null;
+        let bottomY = Math.max(h1Rect.bottom, heroRect ? heroRect.bottom : 0);
+        let left = Math.min(bestLeft, h1Rect.left, heroRect ? heroRect.left : h1Rect.left);
+        let right = Math.max(h1Rect.right, heroRect ? heroRect.right : h1Rect.right);
+
+        return {top: topY, bottom: bottomY, left, right};
+        """
+        try:
+            return driver.execute_script(js)
+        except Exception:
+            return None
+
+    def _localizar_recorte(driver) -> tuple:
+        res = _recorte_por_cover_wrap(driver)
+        origen = "cover-wrap"
+        if not res:
+            res = _recorte_generico(driver)
+            origen = "genérico"
+        if not res:
+            return 0, 0, VIEWPORT_W, MAX_CROP_HEIGHT, "sin-detección"
+
+        left = max(0, int(res.get("left", 0)) - PADDING_SIDES)
+        right = int(res.get("right", VIEWPORT_W)) + PADDING_SIDES
+        top = max(0, int(res.get("top", 0)) - PADDING_TOP)
+        bottom = int(res.get("bottom", 0)) + PADDING_BOTTOM
+
+        width = max(1, right - left)
+        height = bottom - top
+        if height <= 0:
+            height = MAX_CROP_HEIGHT
+        height = min(height, MAX_CROP_HEIGHT)
+
+        return left, top, width, height, origen
+
+    def _capturar_region(driver, x: int, y: int, width: int, height: int, dest_path: str):
+        result = driver.execute_cdp_cmd("Page.captureScreenshot", {
+            "format": "png",
+            "clip": {"x": x, "y": y, "width": width, "height": height, "scale": 1},
+            "captureBeyondViewport": True,
+        })
+        with open(dest_path, "wb") as f:
+            f.write(base64.b64decode(result["data"]))
+
+    news_sections = [s for s in script_dict.get("sections", []) if s["type"].startswith("news_")]
+    print(f"[image_agent_v9] {len(news_sections)} secciones con enlace")
+
+    driver = _crear_driver()
+
+    try:
+        for section in news_sections:
+            link = section.get("link")
+            s_type = section["type"]
+            section.setdefault("images_paths", [])
+
+            if not link:
+                print(f"  [{s_type}] sin link, se omite")
+                continue
+
+            try:
+                driver.get(link)
+                sleep(2.5)  # antes 1.5s
+
+                if not _salir_de_consentimiento(driver, s_type):
+                    continue
+
+                try:
+                    WebDriverWait(driver, 10).until(  # antes 6s
+                        EC.presence_of_element_located((By.CSS_SELECTOR, ".cover-wrap, h1"))
+                    )
+                except Exception:
+                    print(f"  [{s_type}] ✗ no apareció contenido reconocible en {driver.current_url[:70]}, se omite")
+                    continue
+
+                sleep(1.5)  # antes 1s
+
+                if not _esperar_resolucion_antibot(driver, s_type):
+                    print(f"  [{s_type}] ✗ bloqueado por anti-bot ({driver.current_url[:70]}), se omite")
+                    continue
+
+                driver.execute_script("window.scrollTo(0, 0);")
+                sleep(0.3)
+
+                x, y, width, height, origen = _localizar_recorte(driver)
+
+                final_path = str(ASSETS_DIR / f"{s_type}.png")
+                _capturar_region(driver, x, y, width, height, final_path)
+
+                section["images_paths"] = [final_path]
+                print(f"  [{s_type}] ✓ captura guardada ({width}x{height}, x={x}, y={y}, método={origen}) → {final_path}")
+
+            except Exception as e:
+                print(f"  [{s_type}] ✗ fallo al capturar '{link[:60]}': {e}")
+
+    finally:
+        try:
+            driver.quit()
+        except Exception:
+            pass
+
+    found = sum(1 for s in news_sections if s.get("images_paths"))
+    print(f"[image_agent_v9] Completado — {found}/{len(news_sections)} capturas")
+
+    return script_dict
+
 # ---------------------------------------------------------------------------
 # Voice
 # ---------------------------------------------------------------------------
