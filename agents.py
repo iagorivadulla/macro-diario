@@ -68,7 +68,7 @@ def load_context(*filenames: str) -> str:
 class SelectedItem(BaseModel):
     id: int
     headline: str
-    url: str
+    link: str
     reason: str
 
 class FilteredIndex(BaseModel):
