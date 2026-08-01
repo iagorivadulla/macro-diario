@@ -11,6 +11,7 @@ from PIL import Image, ImageDraw, ImageFont
 # ---------------------------------------------------------------------------
 ROOT = Path(__file__).parent
 AUDIO = ROOT / "output.wav"
+MUSIC = ROOT / "background_music.mp3"
 BASE = ROOT / "assets" / "presentador_fondo.png"
 EXPRESIONES = ROOT / "assets" / "presentador_no_fondo_2.png"
 OUTPUT = ROOT / "video" / "episode.mp4"
@@ -415,9 +416,20 @@ def producir(
     result = subprocess.run(
         [
             str(ffmpeg), "-y",
-            "-i", str(temp),
-            "-i", str(audio),
-            "-c:v", "libx264", "-c:a", "aac", "-shortest",
+            "-i", str(temp),  # Entrada 0: Vídeo mudo
+            "-i", str(audio),  # Entrada 1: Voz del presentador
+            "-stream_loop", "-1",  # Entrada 2: Repetir música en bucle
+            "-i", str(MUSIC),
+            "-filter_complex",
+            # Multiplicamos la voz x1.0 y la música x0.12 (12% de volumen). Luego las mezclamos con amix.
+            "[1:a]volume=1.0[voice];"
+            "[2:a]volume=0.12[bgm];"
+            "[voice][bgm]amix=inputs=2:duration=first:dropout_transition=2[aout]",
+            "-map", "0:v",  # Mapear el vídeo del temp
+            "-map", "[aout]",  # Mapear el audio mezclado
+            "-c:v", "libx264",
+            "-c:a", "aac",
+            "-shortest",
             str(output),
         ],
         capture_output=True,

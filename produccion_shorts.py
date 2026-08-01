@@ -14,6 +14,7 @@ from agents import broadcaster_kokoro
 # ---------------------------------------------------------------------------
 ROOT = Path(__file__).parent
 AUDIO = ROOT / "output.wav"
+MUSIC = ROOT / "background_music.mp3"
 BASE = ROOT / "assets" / "shorts.png"
 EXPRESIONES = ROOT / "assets" / "presentador_no_fondo_2.png"
 OUTPUT = ROOT / "video" / "short.mp4"
@@ -23,7 +24,7 @@ VIDEO_H = 1672
 VIDEO_W = 941
 
 EYE_CENTER = (467, 853)
-MOUTH_CENTER = (468, 914)
+MOUTH_CENTER = (467, 914)
 
 EYE_SCALE = 0.21
 MOUTH_SCALE = 0.21
@@ -36,12 +37,12 @@ NEWS_IMAGE_H = 268
 # ---------------------------------------------------------------------------
 # Subtítulos
 # ---------------------------------------------------------------------------
-SUB_FONT_SIZE       = 35
-SUB_LINE_HEIGHT     = 54
+SUB_FONT_SIZE       = 28
+SUB_LINE_HEIGHT     = 42
 SUB_LINES_VISIBLE   = 1
-SUB_WRAP_WIDTH      = 72
-SUB_PADDING_X       = 50
-SUB_PADDING_Y       = 18
+SUB_WRAP_WIDTH      = 38
+SUB_PADDING_X       = 40
+SUB_PADDING_Y       = 25
 SUB_BG_ALPHA        = 175
 SUB_Y_BOTTOM_MARGIN = 30
 SUB_COLOR           = (255, 255, 255, 255)
@@ -211,13 +212,22 @@ def render_subtitle(frame_bgr: np.ndarray, lines: list[str], font: ImageFont.Fre
     draw = ImageDraw.Draw(frame_pil)
     for i, line in enumerate(lines):
         y = band_y + SUB_PADDING_Y + i * SUB_LINE_HEIGHT
+
+        # --- Cálculo para centrar el texto horizontalmente ---
+        bbox = font.getbbox(line)
+        text_w = bbox[2] - bbox[0]
+        x = (w - text_w) // 2
+        # -----------------------------------------------------
+
+        # Sombra
         draw.text(
-            (SUB_PADDING_X + SUB_SHADOW_OFFSET, y + SUB_SHADOW_OFFSET),
+            (x + SUB_SHADOW_OFFSET, y + SUB_SHADOW_OFFSET),
             line,
             font=font,
             fill=SUB_SHADOW_COLOR,
         )
-        draw.text((SUB_PADDING_X, y), line, font=font, fill=SUB_COLOR)
+        # Texto principal
+        draw.text((x, y), line, font=font, fill=SUB_COLOR)
 
     return np.array(frame_pil.convert("RGB"))[:, :, ::-1]
 
@@ -336,9 +346,20 @@ def producir(
     result = subprocess.run(
         [
             str(ffmpeg), "-y",
-            "-i", str(temp),
-            "-i", str(audio),
-            "-c:v", "libx264", "-c:a", "aac", "-shortest",
+            "-i", str(temp),  # Entrada 0: Vídeo mudo
+            "-i", str(audio),  # Entrada 1: Voz del presentador
+            "-stream_loop", "-1",  # Entrada 2: Repetir música en bucle
+            "-i", str(MUSIC),
+            "-filter_complex",
+            # Multiplicamos la voz x1.0 y la música x0.12 (12% de volumen). Luego las mezclamos con amix.
+            "[1:a]volume=1.0[voice];"
+            "[2:a]volume=0.12[bgm];"
+            "[voice][bgm]amix=inputs=2:duration=first:dropout_transition=2[aout]",
+            "-map", "0:v",  # Mapear el vídeo del temp
+            "-map", "[aout]",  # Mapear el audio mezclado
+            "-c:v", "libx264",
+            "-c:a", "aac",
+            "-shortest",
             str(output),
         ],
         capture_output=True,
