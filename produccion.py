@@ -89,7 +89,6 @@ def rms_to_mouth(r: float) -> int:
 # ---------------------------------------------------------------------------
 # Process
 # ---------------------------------------------------------------------------
-
 def _cargar_fuente(size: int) -> ImageFont.FreeTypeFont:
     """Carga la primera fuente TTF disponible; fallback a la fuente por defecto."""
     for path in _FONT_CANDIDATES:
@@ -101,19 +100,47 @@ def _cargar_fuente(size: int) -> ImageFont.FreeTypeFont:
     print("[subtítulos] ⚠ No se encontró fuente TTF, usando fuente por defecto (sin tildes)")
     return ImageFont.load_default()
 
+
+def eliminar_fondo_piel(pil_img):
+    """
+    Convierte en transparentes los píxeles del color de piel base
+    de los recuadros para que solo se peguen los rasgos (ojos/boca/cejas).
+    """
+    img_rgba = pil_img.convert("RGBA")
+    data = np.array(img_rgba)
+
+    # Extraemos canales RGB
+    r, g, b = data[:, :, 0], data[:, :, 1], data[:, :, 2]
+
+    # Rango del tono de piel beige/grisáceo a eliminar en la hoja:
+    # Ajustado a los valores exactos de la piel clara de presentador_no_fondo_2
+    mask_piel = (
+            (r >= 140) & (r <= 230) &
+            (g >= 110) & (g <= 180) &
+            (b >= 80) & (b <= 150)
+    )
+
+    # Ponemos el canal Alpha a 0 (transparente) en la piel del recuadro
+    data[mask_piel, 3] = 0
+
+    return Image.fromarray(data)
+
+
 def cargar_sprites(base_path: Path, expresiones_path: Path):
     print("[sprites] Cargando base y expresiones...")
     body = Image.open(base_path).convert("RGBA")
     sheet = Image.open(expresiones_path).convert("RGBA")
 
-    eyes = [
-        sheet.crop(c).resize((int((c[2] - c[0]) * EYE_SCALE), int((c[3] - c[1]) * EYE_SCALE)), Image.NEAREST)
-        for c in EYE_SPRITES
-    ]
-    mouths = [
-        sheet.crop(c).resize((int((c[2] - c[0]) * MOUTH_SCALE), int((c[3] - c[1]) * MOUTH_SCALE)), Image.NEAREST)
-        for c in MOUTH_SPRITES
-    ]
+    eyes = []
+    for c in EYE_SPRITES:
+        crop = sheet.crop(c).resize((int((c[2] - c[0]) * EYE_SCALE), int((c[3] - c[1]) * EYE_SCALE)), Image.NEAREST)
+        eyes.append(eliminar_fondo_piel(crop))
+
+    mouths = []
+    for c in MOUTH_SPRITES:
+        crop = sheet.crop(c).resize((int((c[2] - c[0]) * MOUTH_SCALE), int((c[3] - c[1]) * MOUTH_SCALE)), Image.NEAREST)
+        mouths.append(eliminar_fondo_piel(crop))
+
     return body, eyes, mouths
 
 

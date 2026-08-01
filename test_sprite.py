@@ -5,18 +5,18 @@ ROOT = Path(__file__).parent
 
 # NUEVO
 EXPRESIONES = ROOT / "assets" / "presentador_no_fondo_2.png"
-BASE = ROOT / "assets" / "presentador_fondo.png"
+BASE = ROOT / "assets" / "shorts.png"
 
 OUTPUT_TEST = ROOT / "test_cara.png"
 
 # ===========================================================================
 # AJUSTES
 # ===========================================================================
-EYE_CENTER = (415, 343)
-MOUTH_CENTER = (415, 404)
+EYE_CENTER = (467, 858)
+MOUTH_CENTER = (467, 906)
 
-EYE_SCALE = 0.19
-MOUTH_SCALE = 0.19
+EYE_SCALE = 0.21
+MOUTH_SCALE = 0.21
 # ===========================================================================
 
 EYE_SPRITES = [
