@@ -7,10 +7,11 @@ from agents import (
     control_agent,
     script_agent_2,
     script_control_2,
-    broadcaster_kokoro, image_agent_v8
+    broadcaster_kokoro, image_agent_v9
 )
 from scraper import get_articles
 from produccion import producir
+from produccion_shorts import produce_shorts
 import os
 import warnings
 
@@ -70,7 +71,7 @@ def flow():
     # ------------------------------------------------------------------
     # 4. Search and download images
     # ------------------------------------------------------------------
-    script_dict = image_agent_v8(script_dict)
+    script_dict = image_agent_v9(script_dict)
 
     # ------------------------------------------------------------------
     # 5. Create the voice path and save duration in the script
@@ -93,6 +94,8 @@ def flow():
         output=OUTPUT_VIDEO,
         ffmpeg=FFMPEG,
     )
+
+    produce_shorts()
 
     # --------------------------------------------------------------
     # 8. Delete temporal images
