@@ -68,6 +68,7 @@ def load_context(*filenames: str) -> str:
 class SelectedItem(BaseModel):
     id: int
     headline: str
+    url: str
     reason: str
 
 class FilteredIndex(BaseModel):
@@ -362,6 +363,7 @@ def script_agent_2(news: list) -> dict:
     for idx, item in enumerate(news):
         title = item["title"]
         resume = item.get("resume", "")
+        link = item.get("link", "")
 
         next_title = news[idx + 1]["title"] if idx + 1 < len(news) else None
         next_resume = news[idx + 1].get("resume", "") if idx + 1 < len(news) else None
@@ -381,6 +383,7 @@ def script_agent_2(news: list) -> dict:
         script_estructura["sections"].append({
             "type": f"news_{idx + 1}",
             "title": title,
+            "link": link,
             "text": block_text,
             "resume": resume,
             "images_paths": item.get("images_paths"),
