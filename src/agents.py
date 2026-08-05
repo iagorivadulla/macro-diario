@@ -1846,6 +1846,7 @@ def _prepare_for_tts(text: str) -> str:
 def broadcaster_kokoro(
         script_dict: dict,
         voice={"em_alex": 0.65, "em_santa": 0.25},
+        output_path: str = None,
         speed: float = 0.9,
         lang: str = "es",
         chunk_pause: float = 0.6,
@@ -1889,7 +1890,10 @@ def broadcaster_kokoro(
     VOICES_URL = "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin"
     model_file  = ROOT / "assets" / "audio" / "kokoro-v1.0.onnx"
     voices_file = ROOT / "assets" / "audio" / "voices-v1.0.bin"
-    output_path = ROOT / "assets" / "audio" / "output.wav"
+    FFMPEG = ROOT / "assets" / "audio" / "ffmpeg.exe"
+
+    if output_path is None:
+        output_path = ROOT / "assets" / "audio" / "output.wav"
 
     def _download(url, dest):
         import urllib.request
@@ -1964,7 +1968,7 @@ def broadcaster_kokoro(
     processed_out = out.with_name(out.stem + "_processed.wav")
 
     '''subprocess.run([
-        "ffmpeg", "-y", "-i", str(out),
+        str(FFMPEG), "-y", "-i", str(out),
         "-af",
         "highpass=f=80,"
         "acompressor=threshold=-20dB:ratio=2.5:attack=10:release=200:makeup=2,"
@@ -1979,7 +1983,7 @@ def broadcaster_kokoro(
     ], check=True)'''
 
     subprocess.run([
-        "ffmpeg", "-y", "-i", str(out),
+        str(FFMPEG), "-y", "-i", str(out),
         "-af",
         "highpass=f=80,"
         "acompressor=threshold=-16dB:ratio=1.5:attack=25:release=300:makeup=1,"

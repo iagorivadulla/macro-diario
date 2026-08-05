@@ -12,6 +12,7 @@ from src.agents import (
 from src.scraper import get_articles
 from src.produccion import producir
 from src.produccion_shorts import produce_shorts
+import os
 import warnings
 
 warnings.filterwarnings("ignore")
@@ -23,6 +24,22 @@ IMAGES_PATH = Path(__file__).parent / "assets" / "news_images"
 AUDIO_PATH_FILE = Path(__file__).parent / "assets" / "audio" / "output.wav"
 SHORTS_AUDIO_PATH = Path(__file__).parent / "video" / "shorts"
 
+
+def delete():
+
+    # Delete images
+    for i in os.listdir(IMAGES_PATH):
+        path = os.path.join(IMAGES_PATH, i)
+        os.unlink(path)
+
+    # Delete output.wav
+    os.unlink(AUDIO_PATH_FILE)
+
+    # Delete all short audios
+    for i in os.listdir(SHORTS_AUDIO_PATH):
+        if i.endswith(".wav"):
+            path = os.path.join(SHORTS_AUDIO_PATH, i)
+            os.unlink(path)
 
 def flow():
     # ------------------------------------------------------------------
@@ -111,29 +128,7 @@ def flow():
     # 8. Delete temporal images and audios
     #---------------------------------------------------------------
 
-    def delete():
-        import os
-
-        # Delete images
-        for i in os.listdir(IMAGES_PATH):
-            path = os.path.join(IMAGES_PATH, i)
-            os.unlink(path)
-
-        # Delete output.wav
-        os.unlink(AUDIO_PATH_FILE)
-
-        # Delete all short audios
-        for i in os.listdir(SHORTS_AUDIO_PATH):
-            if i.endswith(".wav"):
-                path = os.path.join(SHORTS_AUDIO_PATH, i)
-                os.unlink(path)
-
-
     delete()
-
-
-
-
 
 if __name__ == "__main__":
     flow()

@@ -354,7 +354,7 @@ def producir(
         audio: Path = AUDIO,
         base: Path = BASE,
         expresiones: Path = EXPRESIONES,
-        ffmpeg: Path = ROOT / "ffmpeg.exe",
+        ffmpeg: Path = ROOT / "assets" / "audio" / "ffmpeg.exe",
 ) -> bool:
     import subprocess
 
@@ -407,7 +407,7 @@ def producir(
 # Bucle para crear los shorts
 # ---------------------------------------------------------------------------
 
-def crear_shorts(script_dict: dict, ffmpeg_path: Path = ROOT / "ffmpeg.exe"):
+def crear_shorts(script_dict: dict, ffmpeg_path: Path = ROOT / "assets" / "audio" /"ffmpeg.exe"):
     dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
     meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio",
              "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
@@ -474,7 +474,7 @@ def produce_shorts():
     parser = argparse.ArgumentParser(description="Generador de Shorts con Presentador Pixel-Art")
     parser.add_argument("--script", type=Path,
                         default=ROOT / "script_dict.json")
-    parser.add_argument("--ffmpeg", type=Path, default=ROOT / "ffmpeg.exe")
+    parser.add_argument("--ffmpeg", type=Path, default=ROOT / "assets" / "audio" / "ffmpeg.exe")
     args = parser.parse_args()
 
     if not args.script.exists():
