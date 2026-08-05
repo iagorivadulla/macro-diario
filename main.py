@@ -6,7 +6,7 @@ from agents import (
     resume_agent,
     control_agent,
     script_agent_2,
-    script_control_2,
+    script_control_3,
     broadcaster_kokoro, image_agent_v9, image_agent_v8
 )
 from scraper import get_articles
@@ -67,7 +67,7 @@ def flow():
     # 3. Build and revise the script
     # ------------------------------------------------------------------
     script_dict = script_agent_2(passed)
-    script_dict = script_control_2(passed, script_dict)
+    script_dict = script_control_3(script_dict)
 
     for section in script_dict['sections']:
         section['images_paths'] = []
@@ -114,6 +114,8 @@ def flow():
         path = os.path.join(IMAGES_PATH, i)
         os.unlink(path)
     '''
+
+
 
 if __name__ == "__main__":
     flow()

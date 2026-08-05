@@ -453,6 +453,7 @@ def script_agent_2(news: list) -> dict:
 
         if next_title:
             transition_prompt = (
+                "DEVUELVE EXACTAMENTE UNA FRASE"
                 f"Escribe una única frase que conecte de forma natural la noticia titulada:\n"
                 f"'{title}'\n"
                 f"con la siguiente noticia:\n"
@@ -463,9 +464,22 @@ def script_agent_2(news: list) -> dict:
                 "No adelantes detalles.\n"
                 "Debe despertar curiosidad.\n"
                 "Máximo veinte palabras."
+                
+                "NO PUEDE CONTENER:"
+                "-cifras"
+                "-explicaciones"
+                "-consecuencias"
+                "-contexto"
+                
+                "Tu unica función es enlazar el bloque anterior con el siguiente."
+                "Mas adelante corto por codigo a 18 palabras"
             )
 
             transition_text = run_agent(system, transition_prompt, model)
+
+            words = transition_text.split()
+            if len(words) > 18:
+                transition_text = " ".join(words[:18]).rstrip(",;:") + "."
 
             script_estructura["sections"].append({
                 "type": f"transition_{idx + 1}",
@@ -566,6 +580,8 @@ def script_control_2(news: list, script_dict: dict) -> dict:
 
             specific_rules = ("- Si la transición explica la noticia siguiente o incluye números, REDÚCELA a una sola frase puente. No puede contener datos duros.\n"
                               f"- La siguiente noticia es {next_new}")
+
+
         elif section['type'] == 'outro':
             specific_rules = "- Si el cierre se hace muy largo, acortalo, no debe volver a hablarse de cada noticia ni de todo el cuerpo."
 
@@ -616,6 +632,275 @@ def script_control_2(news: list, script_dict: dict) -> dict:
             pass
 
     return script_dict
+
+def script_control_3(script_dict: dict) -> dict:
+    # ------------------------------------------------------------------
+    # Prompt base
+    # ------------------------------------------------------------------
+
+    BASE_SYSTEM = """
+    Eres el editor de continuidad de Macro Diario.
+
+    NO eres el guionista.
+
+    NO debes mejorar el estilo.
+
+    NO debes reescribir frases porque escribirías diferente.
+
+    Tu única misión es detectar incumplimientos de las reglas y corregirlos.
+
+    Si el texto ya cumple las reglas, devuélvelo EXACTAMENTE igual.
+
+    Devuelve únicamente el texto final.
+    """
+
+    # ------------------------------------------------------------------
+    # Función genérica
+    # ------------------------------------------------------------------
+
+    def review(text: str, summary: str = "", rules: str = "", model=None):
+        prompt = f"""
+    Resumen original:
+
+    {summary}
+
+    Texto:
+
+    {text}
+
+    REGLAS:
+
+    {rules}
+
+    Si el texto ya cumple todas las reglas:
+
+    DEVUÉLVELO EXACTAMENTE IGUAL.
+
+    No cambies estilo.
+
+    No cambies tono.
+
+    No cambies ritmo.
+
+    No reescribas frases simplemente porque prefieras otra forma de escribir.
+    """
+
+        result = run_agent(
+            BASE_SYSTEM,
+            prompt,
+            model,
+            CorrectedSection
+        )
+
+        return result.text.strip()
+
+    # ------------------------------------------------------------------
+    # Intro
+    # ------------------------------------------------------------------
+
+    def review_intro(text, today, model):
+
+        rules = f"""
+    La introducción debe:
+
+    - durar poco
+    - no explicar noticias
+    - no contener spoilers
+    - solo presentar titulares
+
+    La fecha correcta es:
+
+    {today}
+    """
+
+        return review(text=text,
+                      rules=rules,
+                      model=model)
+
+    # ------------------------------------------------------------------
+    # Noticias
+    # ------------------------------------------------------------------
+
+    def review_news(text, resume, model):
+
+        rules = """
+    Comprueba únicamente:
+
+    - datos inventados
+    - contradicciones con el resumen
+    - inglés
+    - cifras escritas con números
+    - errores gramaticales
+
+    NO cambies absolutamente nada más.
+    """
+
+        return review(
+            text=text,
+            summary=resume,
+            rules=rules,
+            model=model
+        )
+
+    # ------------------------------------------------------------------
+    # Transiciones
+    # ------------------------------------------------------------------
+
+    def review_transition(text, next_news, model):
+
+        rules = f"""
+    Una transición:
+
+    - máximo 18 palabras
+    - una única frase
+    - esta en castellano
+    - no explica la siguiente noticia
+    - no contiene cifras
+    - no contiene porcentajes
+    - no contiene fechas
+    - no contiene nombres propios nuevos
+    - no resume la noticia siguiente
+    - no debe incluir frases como:
+        "la siguiente noticia"
+        "deberías vigilar"
+        "la clave está"
+
+    La noticia siguiente es:
+
+    {next_news}
+
+    Si incumple alguna regla:
+
+    reescríbela completamente.
+
+    Si ya es correcta:
+
+    devuélvela igual.
+    """
+
+        return review(
+            text=text,
+            rules=rules,
+            model=model
+        )
+
+    # ------------------------------------------------------------------
+    # Outro
+    # ------------------------------------------------------------------
+
+    def review_outro(text, model):
+
+        rules = """
+    El cierre:
+
+    - debe ser corto
+    - no volver a resumir todas las noticias
+    - no repetir el contenido del vídeo
+    """
+
+        return review(
+            text=text,
+            rules=rules,
+            model=model
+        )
+
+    # ------------------------------------------------------------------
+    # Agente principal
+    # ------------------------------------------------------------------
+
+    def script_control_(script_dict: dict):
+
+        print("Running Script Control v3...")
+
+        model = script_control_model
+
+        dias = [
+            "Lunes",
+            "Martes",
+            "Miércoles",
+            "Jueves",
+            "Viernes",
+            "Sábado",
+            "Domingo"
+        ]
+
+        meses = [
+            "enero",
+            "febrero",
+            "marzo",
+            "abril",
+            "mayo",
+            "junio",
+            "julio",
+            "agosto",
+            "septiembre",
+            "octubre",
+            "noviembre",
+            "diciembre"
+        ]
+
+        hoy = datetime.now()
+
+        fecha = f"{dias[hoy.weekday()]} {hoy.day} de {meses[hoy.month - 1]} de {hoy.year}"
+
+        sections = script_dict["sections"]
+
+        for i, section in enumerate(sections):
+
+            print(f"Reviewing {section['type']}")
+
+            try:
+
+                if section["type"] == "intro":
+
+                    section["text"] = review_intro(
+                        section["text"],
+                        fecha,
+                        model
+                    )
+
+                elif section["type"].startswith("news"):
+
+                    section["text"] = review_news(
+                        section["text"],
+                        section.get("resume", ""),
+                        model
+                    )
+
+                elif section["type"].startswith("transition"):
+
+                    next_news = ""
+
+                    if i + 1 < len(sections):
+
+                        nxt = sections[i + 1]
+
+                        if nxt["type"].startswith("news"):
+                            next_news = nxt["text"]
+
+                    section["text"] = review_transition(
+                        section["text"],
+                        next_news,
+                        model
+                    )
+
+                elif section["type"] == "outro":
+
+                    section["text"] = review_outro(
+                        section["text"],
+                        model
+                    )
+
+            except Exception as e:
+
+                print(
+                    f"Error revisando {section['type']}: {e}"
+                )
+
+        return script_dict
+
+
+    return script_control_(script_dict)
 
 # -------------------------------------------------------------------------
 # Images
@@ -1678,13 +1963,26 @@ def broadcaster_kokoro(
     # Audio más tipo podcast
     processed_out = out.with_name(out.stem + "_processed.wav")
 
-    subprocess.run([
+    '''subprocess.run([
         "ffmpeg", "-y", "-i", str(out),
         "-af",
         "highpass=f=80,"
         "acompressor=threshold=-20dB:ratio=2.5:attack=10:release=200:makeup=2,"
         "anequalizer=c0 f=500 w=200 g=-2 t=0|c0 f=3000 w=1000 g=2.5 t=0,"
         "lowpass=f=16000,"
+        "loudnorm=I=-16:TP=-1.5:LRA=11,"
+        "aresample=24000",
+        "-acodec", "pcm_s16le",
+        "-ar", "24000",
+        "-ac", "1",
+        str(processed_out)
+    ], check=True)'''
+
+    subprocess.run([
+        "ffmpeg", "-y", "-i", str(out),
+        "-af",
+        "highpass=f=80,"
+        "acompressor=threshold=-16dB:ratio=1.5:attack=25:release=300:makeup=1,"
         "loudnorm=I=-16:TP=-1.5:LRA=11,"
         "aresample=24000",
         "-acodec", "pcm_s16le",
