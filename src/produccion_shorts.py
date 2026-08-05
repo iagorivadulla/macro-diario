@@ -7,16 +7,16 @@ from datetime import datetime
 from pathlib import Path
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
-from agents import broadcaster_kokoro
+from src.agents import broadcaster_kokoro
 
 # ---------------------------------------------------------------------------
 # Configuración
 # ---------------------------------------------------------------------------
-ROOT = Path(__file__).parent
-AUDIO = ROOT / "output.wav"
-MUSIC = ROOT / "background_music.mp3"
-BASE = ROOT / "assets" / "shorts.png"
-EXPRESIONES = ROOT / "assets" / "presentador_no_fondo_2.png"
+ROOT = Path(__file__).parent.parent
+AUDIO = ROOT / "assets" / "audio" / "output.wav"
+MUSIC = ROOT / "assets" / "audio" / "background_music.mp3"
+BASE = ROOT / "assets" / "background" / "shorts.png"
+EXPRESIONES = ROOT / "assets" / "background" / "presentador_no_fondo_2.png"
 OUTPUT = ROOT / "video" / "short.mp4"
 
 FPS = 25

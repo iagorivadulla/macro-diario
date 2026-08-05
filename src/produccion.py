@@ -9,11 +9,11 @@ from PIL import Image, ImageDraw, ImageFont
 # ---------------------------------------------------------------------------
 # Config
 # ---------------------------------------------------------------------------
-ROOT = Path(__file__).parent
-AUDIO = ROOT / "output.wav"
-MUSIC = ROOT / "background_music.mp3"
-BASE = ROOT / "assets" / "presentador_fondo.png"
-EXPRESIONES = ROOT / "assets" / "presentador_no_fondo_2.png"
+ROOT = Path(__file__).parent.parent
+AUDIO = ROOT / "assets" / "audio" / "output.wav"
+MUSIC = ROOT / "assets" / "audio" / "background_music.mp3"
+BASE = ROOT / "assets" / "background" / "presentador_fondo.png"
+EXPRESIONES = ROOT / "assets" / "background" / "presentador_no_fondo_2.png"
 OUTPUT = ROOT / "video" / "episode.mp4"
 
 FPS = 25

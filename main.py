@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
-from rss import read_feeds
-from agents import (
+from src.rss import read_feeds
+from src.agents import (
     filter_agent,
     resume_agent,
     control_agent,
@@ -9,18 +9,19 @@ from agents import (
     script_control_3,
     broadcaster_kokoro, image_agent_v9, image_agent_v8
 )
-from scraper import get_articles
-from produccion import producir
-from produccion_shorts import produce_shorts
-import os
+from src.scraper import get_articles
+from src.produccion import producir
+from src.produccion_shorts import produce_shorts
 import warnings
 
 warnings.filterwarnings("ignore")
 
 SCRIPT_DICT_PATH = Path(__file__).parent / "script_dict.json"
 OUTPUT_VIDEO     = Path(__file__).parent / "video" / "episode.mp4"
-FFMPEG           = Path(__file__).parent / "ffmpeg.exe"
+FFMPEG           = Path(__file__).parent / "assets" / "audio" / "ffmpeg.exe"
 IMAGES_PATH = Path(__file__).parent / "assets" / "news_images"
+AUDIO_PATH_FILE = Path(__file__).parent / "assets" / "audio" / "output.wav"
+SHORTS_AUDIO_PATH = Path(__file__).parent / "video" / "shorts"
 
 
 def flow():
@@ -107,13 +108,30 @@ def flow():
     produce_shorts()
 
     # --------------------------------------------------------------
-    # 8. Delete temporal images
+    # 8. Delete temporal images and audios
     #---------------------------------------------------------------
-    '''
-    for i in os.listdir(IMAGES_PATH):
-        path = os.path.join(IMAGES_PATH, i)
-        os.unlink(path)
-    '''
+
+    def delete():
+        import os
+
+        # Delete images
+        for i in os.listdir(IMAGES_PATH):
+            path = os.path.join(IMAGES_PATH, i)
+            os.unlink(path)
+
+        # Delete output.wav
+        os.unlink(AUDIO_PATH_FILE)
+
+        # Delete all short audios
+        for i in os.listdir(SHORTS_AUDIO_PATH):
+            if i.endswith(".wav"):
+                path = os.path.join(SHORTS_AUDIO_PATH, i)
+                os.unlink(path)
+
+
+    delete()
+
+
 
 
 

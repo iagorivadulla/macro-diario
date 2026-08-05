@@ -42,7 +42,7 @@ uc.Chrome.__del__ = _uc_del_safe
 # Context loader
 # ---------------------------------------------------------------------------
 
-CONTEXT_DIR = Path(__file__).parent / "context"
+CONTEXT_DIR = Path(__file__).parent.parent / "context"
 
 def load_context(*filenames: str) -> str:
     """
@@ -1181,7 +1181,7 @@ def image_agent_v8(script_dict: dict) -> dict:
     except ImportError:
         from duckduckgo_search import DDGS
 
-    ASSETS_DIR    = Path(__file__).parent / "assets" / "news_images"
+    ASSETS_DIR    = Path(__file__).parent.parent / "assets" / "news_images"
     TARGET        = 3     # imágenes por sección
     MAX_PER_QUERY = 8      # URLs que se prueban por cada query
     N_QUERIES     = 3     # queries generadas por sección
@@ -1457,7 +1457,7 @@ def image_agent_v9(script_dict: dict, headless: bool = True) -> dict:
     from selenium.webdriver.support.ui import WebDriverWait
     from selenium.webdriver.support import expected_conditions as EC
 
-    ASSETS_DIR = Path(__file__).parent / "assets" / "news_images"
+    ASSETS_DIR = Path(__file__).parent.parent / "assets" / "news_images"
     ASSETS_DIR.mkdir(parents=True, exist_ok=True)
 
     VIEWPORT_W = 1280
@@ -1848,7 +1848,6 @@ def broadcaster_kokoro(
         voice={"em_alex": 0.65, "em_santa": 0.25},
         speed: float = 0.9,
         lang: str = "es",
-        output_path: str = "output.wav",
         chunk_pause: float = 0.6,
         section_pause: float = 1.0,
         section_voices: dict | None = None,
@@ -1885,11 +1884,12 @@ def broadcaster_kokoro(
         raise ValueError(f"Spec de voz no reconocida: {spec!r}")
     # ─────────────────────────────────────────────────────────────────────────
 
-    ROOT = Path(__file__).parent
+    ROOT = Path(__file__).parent.parent
     MODEL_URL  = "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx"
     VOICES_URL = "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin"
-    model_file  = ROOT / "kokoro-v1.0.onnx"
-    voices_file = ROOT / "voices-v1.0.bin"
+    model_file  = ROOT / "assets" / "audio" / "kokoro-v1.0.onnx"
+    voices_file = ROOT / "assets" / "audio" / "voices-v1.0.bin"
+    output_path = ROOT / "assets" / "audio" / "output.wav"
 
     def _download(url, dest):
         import urllib.request

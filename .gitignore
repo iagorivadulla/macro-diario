@@ -11,9 +11,13 @@ __pycache__/
 # Outputs generados en cada ejecución
 script_dict.json
 
+#images downloaded
+assets/news_images/*
+
 # Modelos y binarios pesados
 *.onnx
 *.bin
 *.exe
 *.mp4
 *.wav
+*.mp3
