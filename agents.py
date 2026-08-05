@@ -89,14 +89,14 @@ class ImageQueriesList(BaseModel):
 # Base agent
 # ---------------------------------------------------------------------------
 
-def run_agent(system: str, prompt: str, model: str, schema: BaseModel = None, temperature: float = 0.7,) -> dict:
+def run_agent(system: str, prompt: str, model: str, schema: BaseModel = None, temperature: float = 0.7, num_ctx: int = 6144) -> dict:
     kwargs = {
         "model": model,
         "messages": [
             {"role": "system", "content": system},
             {"role": "user",   "content": prompt},
         ],
-        "options": {"temperature": temperature},
+        "options": {"temperature": temperature, "num_ctx": num_ctx},
     }
     if schema:
         kwargs["format"] = schema.model_json_schema()
@@ -111,6 +111,7 @@ def run_agent(system: str, prompt: str, model: str, schema: BaseModel = None, te
 # ---------------------------------------------------------------------------
 # Models
 # -----------------------------------------------------------------------model
+'''
 filter_model = "qwen2.5:7b-instruct-q4_K_M"
 resume_model = "gemma2:9b-instruct-q4_K_M"
 control_model = "llama3.1:8b-instruct-q4_K_M"
@@ -118,6 +119,14 @@ script_model = "gemma2:9b-instruct-q4_K_M"
 script_control_model = "llama3.1:8b-instruct-q4_K_M"
 image_model = "qwen2.5:7b-instruct-q4_K_M"
 vision_model = "llava:7b"
+'''
+filter_model = "qwen3:8b"
+resume_model = "qwen3:8b"
+control_model = "qwen3:8b"
+script_model = "qwen3:8b"
+script_control_model = "qwen3:8b"
+image_model = "qwen3:8b"
+vision_model = "qwen3-vl:8b"
 
 # ---------------------------------------------------------------------------
 # Filter Agent
@@ -153,6 +162,7 @@ def filter_agent(news: list) -> list:
     context = load_context("filter_criteria.md")
 
     system = (
+
         "Eres un editor senior de noticias económicas. "
         "Sigues un criterio de selección estricto y documentado. "
         "Ante el mismo conjunto de titulares, siempre tomas la misma decisión. "
@@ -161,6 +171,7 @@ def filter_agent(news: list) -> list:
     )
 
     prompt = (
+
         f"Aplica los criterios de selección a esta lista de titulares "
         f"y elige EXACTAMENTE 10 noticias:\n\n{headlines}\n\n"
         "Para cada noticia seleccionada, indica:\n"
@@ -170,7 +181,7 @@ def filter_agent(news: list) -> list:
         "Descarta duplicados según el criterio de exclusión definido."
     )
 
-    result = run_agent(system, prompt, model, FilteredIndex, temperature=0)
+    result = run_agent(system, prompt, model, FilteredIndex, temperature=0, num_ctx=6144)
 
     news_return = []
     seen_ids = set()
@@ -203,6 +214,7 @@ def resume_agent(news: list) -> list:
     context = load_context("standards.md", "style.md")
 
     system = (
+        "/no_think\n"
         "Eres un analista macroeconómico senior. "
         "Tu tarea es resumir artículos financieros de forma concisa y estructurada. "
         "Respondes SIEMPRE en español, en un único párrafo de texto plano, absolutamente SIN markdown (ni negritas, ni asteriscos).\n\n"
@@ -232,7 +244,7 @@ def resume_agent(news: list) -> list:
                 "3) qué hay que vigilar a futuro. "
                 "Texto plano estricto. Cero markdown, cero viñetas."
             )
-            i['resume'] = run_agent(system, prompt, model)
+            i['resume'] = run_agent(system, prompt, model, num_ctx= 4608, temperature=0.3)
 
         if article and accepted == False:
             prompt = (
@@ -277,6 +289,11 @@ def control_agent(news: list) -> list:
         article = raw_article[:4000] if raw_article else ''
         resume = i.get('resume')
 
+        if article and not resume:
+            i['accepted'] = False
+            i['control_reason'] = "El resumen llegó vacío (posible fallo del modelo)."
+            continue
+
         if article and resume:
             prompt = (
                 f"Titular: {title}\n\n"
@@ -289,12 +306,12 @@ def control_agent(news: list) -> list:
                 "Si apruebas, reason debe ser null o vacío. "
                 "Si rechazas, escribe en 'reason' UNA instrucción directa de cómo solucionarlo (ej: 'Quita los asteriscos de negrita' o 'El dato del 5% no aparece en el texto')."
             )
-            result = run_agent(system, prompt, model, QualityCheck)
+            result = run_agent(system, prompt, model, QualityCheck, num_ctx= 4096)
             i['accepted'] = result.accepted
             i['control_reason'] = result.reason
 
-    accepted = [i for i in news if i.get('accepted') is True]
-    denied = [i for i in news if i.get('accepted') is False]
+    accepted: list = [i for i in news if i.get('accepted') is True]
+    denied: list = [i for i in news if i.get('accepted') is False]
 
     return accepted, denied
 
@@ -323,10 +340,36 @@ def script_agent_2(news: list) -> dict:
     fecha_exacta = f"{dias[hoy.weekday()]} {hoy.day} de {meses[hoy.month - 1]} de {hoy.year}"
 
     system = (
-        "Eres guionista de 'Macro Diario', un podcast financiero diario en español. "
-        "Devuelves SOLO el texto del guión del bloque solicitado, sin comentarios, sin meta-texto.\n\n"
+        "Eres el guionista principal de 'Macro Diario', un informativo diario sobre economía, mercados, empresas, tecnología e inteligencia artificial.\n\n"
+
+        "Tu misión NO es resumir noticias.\n"
+        "Tu misión es conseguir que el espectador quiera ver el episodio completo.\n\n"
+
+        "Escribes para ser leído en voz alta por un presentador.\n"
+        "Cada frase debe sonar natural, clara y dinámica.\n"
+        "Escribe como un periodista profesional adaptado a YouTube, no como un periódico ni como una IA.\n\n"
+
+        "Cada bloque debe responder de forma natural a estas preguntas:\n"
+        "- ¿Qué ha ocurrido?\n"
+        "- ¿Por qué importa?\n"
+        "- ¿Qué consecuencias puede tener?\n"
+        "- ¿Qué debería vigilar el espectador?\n\n"
+
+        "Prioriza siempre la claridad antes que el lenguaje técnico.\n"
+        "Cuando aparezcan cifras, explica por qué son relevantes.\n"
+        "Cada frase debe aportar información nueva.\n"
+        "Evita repeticiones.\n"
+        "Evita frases vacías.\n\n"
+
+        "PROHIBIDO inventar cualquier dato, nombre, cargo, empresa o contexto.\n"
+        "Solo puedes utilizar la información proporcionada en los resúmenes.\n\n"
+
+        "No escribas listas.\n"
+        "No escribas encabezados.\n"
+        "No escribas etiquetas.\n"
+        "Devuelve únicamente el texto solicitado.\n\n"
+
         f"{context}"
-        f"{redaction_rules}"
     )
 
     headlines = "\n".join(f"- {i['title']}" for i in news)
@@ -335,20 +378,24 @@ def script_agent_2(news: list) -> dict:
 
     # --- 1. INTRO ---
     intro_prompt = (
-        f"Escribe la APERTURA del episodio de hoy siguiendo EXACTAMENTE la estructura "
-        f"de cuatro elementos definida en structure.md.\n\n"
-        f"La fecha de hoy es EXACTAMENTE: {fecha_exacta}. Comienza el texto diciendo esta fecha.\n\n"
-        "REGLA PERIODÍSTICA CRÍTICA: Basa tu texto ÚNICA Y EXCLUSIVAMENTE en la información de las noticias proporcionadas. "
-        "PROHIBIDO inventar o deducir cargos políticos (no asumas quién es presidente, ministro o CEO si no lo especifica el texto). "
-        "PROHIBIDO añadir contexto histórico o datos que no estén explícitamente en los resúmenes.\n\n"
-        f"Noticias del día:\n{headlines}\n\n"
-        "Orden obligatorio:\n"
-        "[1] Primera frase con la fecha del día integrada de forma natural.\n"
-        "[2] 2 o 3 cabeceras: los temas más importantes. Una línea por tema, como titulares de portada.\n"
-        "[3] Exactamente esta frase y ninguna más: 'Bienvenidos a Macro Diario.'\n"
-        "[4] Una sola frase de transición que lleve directo al primer bloque.\n\n"
-        "REGLA DE ORO PROHIBIDA: NO debes desarrollar las noticias, NO des datos numéricos, cifras ni desveles el desenlace en esta apertura. El oyente solo debe escuchar los titulares.\n"
-        "Duración objetivo: ~100 palabras."
+        f"Escribe la apertura del episodio de hoy.\n\n"
+
+        f"La fecha de hoy es exactamente: {fecha_exacta}.\n"
+        "Comienza mencionando esa fecha de forma completamente natural.\n\n"
+
+        "Después presenta únicamente los dos o tres temas más importantes del día como titulares breves que despierten curiosidad.\n"
+        "No desarrolles todavía ninguna noticia.\n"
+        "No reveles cifras.\n"
+        "No adelantes conclusiones.\n\n"
+
+        "Incluye exactamente esta frase:\n"
+        "'Bienvenidos a Macro Diario.'\n\n"
+
+        "Finaliza con una única frase que conecte de forma natural con la primera noticia.\n\n"
+
+        "Objetivo: conseguir que el espectador quiera seguir escuchando.\n\n"
+
+        f"Noticias disponibles:\n{headlines}"
     )
     intro_text = run_agent(system, intro_prompt, model)
 
@@ -369,14 +416,29 @@ def script_agent_2(news: list) -> dict:
         next_resume = news[idx + 1].get("resume", "") if idx + 1 < len(news) else None
 
         block_prompt = (
-            f"Escribe el BLOQUE de noticia para:\n\n"
-            f"Titular: {title}\n"
-            f"Resumen: {resume}\n\n"
-            "Sigue la estructura interna definida en structure.md:\n"
-            "- Entra directo al hecho con datos concretos (sin 'Ahora hablamos de...').\n"
-            "- Contextualiza: qué cambia esto, quién gana, quién pierde.\n"
-            "- Cierra con qué hay que vigilar: un dato, evento o reacción concreta.\n"
-            "Los números se escriben fonéticamente (ej: 'veinte mil', 'dos punto ocho por ciento'). "
+            f"Escribe el bloque correspondiente a esta noticia.\n\n"
+
+            f"Titular:\n{title}\n\n"
+
+            f"Resumen:\n{resume}\n\n"
+
+            "Empieza directamente por el hecho más importante.\n"
+            "Después explica por qué esta noticia importa realmente.\n"
+            "Si afecta a empresas, gobiernos, mercados o ciudadanos, explícalo de forma sencilla.\n"
+            "Cuando aparezcan cifras, intégralas de forma natural explicando su significado.\n"
+            "Termina indicando qué debería vigilar el espectador durante los próximos días.\n\n"
+
+            "Debe sonar como un periodista que habla directamente al espectador.\n"
+            "No repitas literalmente el titular.\n"
+            "No inventes contexto.\n"
+            "No añadas información externa.\n"
+            "No utilices frases como:\n"
+            "'Ahora hablamos de...'\n"
+            "'En otra noticia...'\n"
+            "'Pasamos a...'\n\n"
+
+            "Todos los números deben escribirse con palabras.\n"
+            "Longitud aproximada: entre noventa y ciento cuarenta palabras."
         )
         block_text = run_agent(system, block_prompt, model)
 
@@ -391,11 +453,16 @@ def script_agent_2(news: list) -> dict:
 
         if next_title:
             transition_prompt = (
-                f"Escribe UNA sola frase de transición causal o temática "
-                f"desde '{title}' hacia '{next_title}'. "
-                f"Contexto del siguiente bloque: {next_resume[:300]}\n"
-                "PROHIBIDO: Repetir datos de la noticia anterior o adelantar cifras o detalles de la siguiente noticia. Debe ser un simple puente corto.\n"
-                "No más de 200 caracteres."
+                f"Escribe una única frase que conecte de forma natural la noticia titulada:\n"
+                f"'{title}'\n"
+                f"con la siguiente noticia:\n"
+                f"'{next_title}'.\n\n"
+
+                "Debe sonar como una conversación natural.\n"
+                "No repitas información.\n"
+                "No adelantes detalles.\n"
+                "Debe despertar curiosidad.\n"
+                "Máximo veinte palabras."
             )
 
             transition_text = run_agent(system, transition_prompt, model)
@@ -409,9 +476,13 @@ def script_agent_2(news: list) -> dict:
 
     # --- 3. OUTRO ---
     outro_prompt = (
-        f"Escribe el CIERRE del episodio siguiendo la estructura definida.\n\n"
-        f"Temas cubiertos hoy:\n{headlines}\n\n"
-        "Máximo 4 líneas. Agradece a los espectadores y despide Macro Diario."
+        "Escribe el cierre del episodio.\n\n"
+
+        "No repitas ninguna noticia.\n"
+        "Despide el programa de forma natural.\n"
+        "Invita al espectador a volver mañana para conocer las noticias económicas más importantes del día.\n"
+        "Mantén un tono cercano y profesional.\n"
+        "Máximo cuatro líneas."
     )
     outro_text = run_agent(system, outro_prompt, model)
 
@@ -441,15 +512,41 @@ def script_control_2(news: list, script_dict: dict) -> dict:
 
     context = load_context("editorial.md", "style.md", "structure.md")
     system = (
-        "Eres un estricto revisor de guiones de 'Macro Diario', un podcast financiero diario en español. "
-        "Tu trabajo es corregir el guión para que cumpla con los resúmenes originales "
-        "y limpiar el texto de desbordamientos de información (spoilers).\n"
-        "Devuelves SOLO el texto del guión corregido en formato JSON estricto.\n\n"
+        "Eres el editor de continuidad y control de calidad de 'Macro Diario'.\n\n"
+
+        "NO eres el guionista.\n"
+        "NO debes cambiar el estilo del texto.\n"
+        "NO debes reescribir frases simplemente porque escribirías diferente.\n\n"
+
+        "Tu misión es conservar el trabajo del guionista siempre que sea correcto.\n"
+        "Solo debes modificar aquello que incumpla alguna de las reglas siguientes.\n\n"
+
+        "Solo puedes intervenir para:\n"
+        "- corregir datos incorrectos.\n"
+        "- eliminar información inventada.\n"
+        "- eliminar spoilers.\n"
+        "- corregir números escritos con cifras.\n"
+        "- eliminar meta-texto.\n"
+        "- eliminar frases en inglés.\n"
+        "- corregir errores gramaticales evidentes.\n\n"
+
+        "Si una frase es correcta aunque tú la escribirías diferente, NO la cambies.\n\n"
+
+        "El objetivo es preservar al máximo el trabajo del guionista.\n\n"
+
+        "Devuelve únicamente el texto corregido.\n\n"
+
         f"{context}"
-        f"{redaction_rules}"
     )
 
     sections = script_dict["sections"]
+
+    dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+    meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre",
+             "noviembre", "diciembre"]
+
+    hoy = datetime.now()
+    fecha_exacta = f"{dias[hoy.weekday()]} {hoy.day} de {meses[hoy.month - 1]} de {hoy.year}"
 
     # Revisamos el texto de cada sección de manera aislada
     for i, section in enumerate(sections):
@@ -457,7 +554,8 @@ def script_control_2(news: list, script_dict: dict) -> dict:
         # Filtros específicos según el tipo de bloque
         specific_rules = ""
         if section['type'] == 'intro':
-            specific_rules = "- Si la apertura desarrolla noticias, da cifras o resume los eventos a fondo, CÓRTALA. Solo debe presentar los titulares por encima.\n"
+            specific_rules = ("- Si la apertura desarrolla noticias, da cifras o resume los eventos a fondo, CÓRTALA. Solo debe presentar los titulares por encima.\n"
+                              f"- Cambia la fecha si no corresponde con la real. Fecha real {fecha_exacta}\n")
         elif "transition" in section['type']:
 
             next_new = ''
@@ -474,17 +572,38 @@ def script_control_2(news: list, script_dict: dict) -> dict:
         resume = section.get('resume', '')
 
         prompt = (
-            f"Resúmen de referencia:\n\n{resume}\n\n"
-            f"Texto de la sección ({section['type']}) a revisar:\n\n{section['text']}\n\n"
-            "Corrige ÚNICAMENTE:\n"
+            f"Resumen original:\n\n{resume}\n\n"
+
+            f"Texto generado:\n\n{section['text']}\n\n"
+
+            "Debes actuar como un auditor.\n"
+            "NO debes actuar como un escritor.\n\n"
+
+            "Conserva exactamente el texto original salvo cuando exista uno de estos problemas:\n\n"
+
             f"{specific_rules}"
-            "- Datos, cifras o hechos que no coincidan con los resúmenes.\n"
-            "- Afirmaciones inventadas que no aparezcan en ningún resumen.\n"
-            "- Frases prohibidas según style.md.\n"
-            "- Números en formato numérico en vez de fonético (ej: '20.000' → 'veinte mil', '$5' -> 'cinco dólares').\n"
-            "- Elimina cualquier fragmento en inglés o Spanglish.\n"
-            "- Elimina cualquier meta-texto o nombre de variable como 'transition_1:'.\n"
-            "Si el texto es correcto, devuélvelo exactamente igual sin añadir comentarios extra."
+
+            "- Información inventada. Cambiala a la verdadera.\n"
+            "- Datos que contradigan el resumen. Modificalos para que se adapten al resumen.\n"
+            "- Spoilers en la introducción o transiciones. Cambiala para que no tenga el spoiler o la noticia completa\n"
+            "- Cifras escritas con números. Reescribe los numeros a como se pronuncian\n"
+            "- Texto en inglés. Traducelo al castellano\n"
+            "- Meta-texto. Eliminalo, debe verse como el expectador lo va a escuchar\n"
+            "- Errores ortográficos o gramaticales evidentes.\n\n"
+
+            "NO cambies:\n"
+            "- el tono.\n"
+            "- el ritmo.\n"
+            "- el estilo.\n"
+            "- el orden de las frases.\n"
+            "- las expresiones naturales.\n"
+            "- las transiciones, excepto si son demasiado largas o contienen la siguiente noticia.\n\n"
+            
+            "Antes de modificar cualquier frase pregúntate:\n"
+            "¿Es imprescindible cambiarla para cumplir las reglas?\n"
+            "Si la respuesta es NO, no la modifiques.\n\n"
+
+            "Si el texto ya cumple todas las reglas, devuélvelo EXACTAMENTE IGUAL, carácter por carácter."
         )
 
         try:
@@ -778,9 +897,9 @@ def image_agent_v8(script_dict: dict) -> dict:
         from duckduckgo_search import DDGS
 
     ASSETS_DIR    = Path(__file__).parent / "assets" / "news_images"
-    TARGET        = 5      # imágenes por sección
+    TARGET        = 3     # imágenes por sección
     MAX_PER_QUERY = 8      # URLs que se prueban por cada query
-    N_QUERIES     = 15     # queries generadas por sección
+    N_QUERIES     = 3     # queries generadas por sección
     TIMEOUT       = 10
     MIN_WIDTH     = 350
     MIN_HEIGHT    = 250
@@ -825,6 +944,7 @@ def image_agent_v8(script_dict: dict) -> dict:
                 image_bytes = buf.getvalue()
 
             prompt = (
+                "/no_think\n"
                 f"You are a photo editor. Target: '{query}'. "
                 f"Is this image an acceptable news photo for the topic '{query}'? "
                 f"Be reasonable: if the photo depicts the correct person, the correct place, or the correct object (even if it's a bit blurry or has background elements), answer YES. "
@@ -835,8 +955,9 @@ def image_agent_v8(script_dict: dict) -> dict:
                 model=vision_model,
                 prompt=prompt,
                 images=[image_bytes],
-                options={"temperature": 0.0, "num_predict": 5},
+                options={"temperature": 0.0, "num_predict": 300},
             )
+            print(f"[llava] RAW: {resp}")
             answer = resp.get("response", "").strip().upper()
             print(f"    [llava] {answer}")
             return "YES" in answer
@@ -951,7 +1072,6 @@ def image_agent_v8(script_dict: dict) -> dict:
     def _procesar_seccion(section: dict) -> None:
         ASSETS_DIR.mkdir(parents=True, exist_ok=True)
         s_type = section["type"]
-        section.setdefault("images_paths", [])
 
         # Reutilizar queries ya generadas en paralelo si están disponibles
         queries = section.pop("_queries_cache", None) or _generar_queries(section)
@@ -1361,52 +1481,6 @@ def image_agent_v9(script_dict: dict, headless: bool = True) -> dict:
 # Voice
 # ---------------------------------------------------------------------------
 
-def broadcaster(script: str) -> str:
-    tts = TTS(auto_download=True)
-    style = tts.get_voice_style(voice_name="M3")
-    wav, duration = tts.synthesize(
-        text=script,
-        voice_style=style,
-        lang="es",
-        speed=1.20,
-        total_steps=12,
-        verbose=True,
-    )
-    tts.save_audio(wav, "output.wav")
-    print(f"Generated audio")
-
-def broadcaster_2(script_dict: dict) -> str:
-    import numpy as _np
-
-    tts   = TTS(auto_download=True)
-    style = tts.get_voice_style(voice_name="M3")
-
-    all_wavs = []
-    print(f"[TTS] Sintetizando {len(script_dict['sections'])} secciones...")
-
-    for section in script_dict["sections"]:
-        wav, duration = tts.synthesize(
-            text=section["text"],
-            voice_style=style,
-            lang="es",
-            speed=1.3,
-            total_steps=30,
-            verbose=False,
-        )
-        # supertonic devuelve duration como numpy scalar/array → forzar float Python
-        duration_s = float(_np.asarray(duration).flat[0])
-        section["audio_duration"] = duration_s
-        all_wavs.append(wav)
-        print(f"  {section['type']:12s}  {duration_s:.1f}s")
-
-    combined = _np.concatenate([w.reshape(-1) for w in all_wavs])
-    tts.save_audio(combined, "output.wav")
-
-    total = sum(s["audio_duration"] for s in script_dict["sections"])
-    print(f"[TTS] Audio total: {total:.1f}s")
-
-    return "\n\n".join(s["text"] for s in script_dict["sections"])
-
 
 def _split_sentences(text: str, max_chars: int = 180) -> list[str]:
     """
@@ -1458,6 +1532,30 @@ def _split_sentences(text: str, max_chars: int = 180) -> list[str]:
     if current:
         chunks.append(current)
     return [c for c in chunks if c.strip()]
+
+def _prepare_for_tts(text: str) -> str:
+    import re
+
+    # eliminar dobles espacios
+    text = re.sub(r"\s+", " ", text)
+
+    # separar mejor los dos puntos
+    text = text.replace(": ", ": ... ")
+
+    # punto y coma = pausa media
+    text = text.replace("; ", "; ... ")
+
+    # guiones largos
+    text = text.replace(" — ", " ... ")
+
+    # paréntesis
+    text = text.replace("(", ", ")
+    text = text.replace(")", ", ")
+
+    # tres puntos
+    text = text.replace("...", "…")
+
+    return text.strip()
 
 
 def broadcaster_kokoro(
@@ -1533,7 +1631,7 @@ def broadcaster_kokoro(
         sec_type  = section.get("type", "body")
         sec_voice = make_voice(section_voices[sec_type]) if (section_voices and sec_type in section_voices) else base_voice
 
-        text   = section["text"]
+        text = _prepare_for_tts(section["text"])
         chunks = _split_sentences(text)
         sec_samples: list = []
 

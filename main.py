@@ -7,7 +7,7 @@ from agents import (
     control_agent,
     script_agent_2,
     script_control_2,
-    broadcaster_kokoro, image_agent_v9
+    broadcaster_kokoro, image_agent_v9, image_agent_v8
 )
 from scraper import get_articles
 from produccion import producir
@@ -28,17 +28,25 @@ def flow():
     # 1. Get and filter the news
     # ------------------------------------------------------------------
     news     = read_feeds()
+
     selected = filter_agent(news)
+    print(f'Selected {len(selected)} articles')
+    print(selected)
 
     articles = get_articles(selected)
-
+    print(articles)
     # ------------------------------------------------------------------
     # 2. Resume and quality test
     # ------------------------------------------------------------------
     resumes          = resume_agent(articles)
+    print(f'Resumes {len(resumes)} articles')
+    print(resumes)
     accepted, denied = control_agent(resumes)
     passed           = list(accepted)
-    print(f"Accepted: {len(accepted)}")
+    print(f"Accepted: {len(passed)}")
+    print(passed)
+    print(f"Denied: {len(denied)}")
+    print(denied)
 
     for d in denied:
         print(f"  [!] Rechazado: {d['title'][:30]}... | Motivo: {d.get('control_reason')}")
@@ -72,6 +80,7 @@ def flow():
     # 4. Search and download images
     # ------------------------------------------------------------------
     script_dict = image_agent_v9(script_dict)
+    script_dict = image_agent_v8(script_dict)
 
     # ------------------------------------------------------------------
     # 5. Create the voice path and save duration in the script
@@ -105,25 +114,6 @@ def flow():
         path = os.path.join(IMAGES_PATH, i)
         os.unlink(path)
     '''
-
-def flow_test():
-
-    with open(SCRIPT_DICT_PATH, "r", encoding="utf-8") as f:
-        script_dict = json.load(f)
-
-    #script_dict = image_agent_v8(script_dict)
-    broadcaster_kokoro(script_dict)
-
-    with open(SCRIPT_DICT_PATH, "w", encoding="utf-8") as f:
-        json.dump(script_dict, f, ensure_ascii=False, indent=2, default=str)
-
-    producir(script_dict=script_dict, output=OUTPUT_VIDEO, ffmpeg=FFMPEG,)
-
-def flow_test_video():
-    with open(SCRIPT_DICT_PATH, "r", encoding="utf-8") as f:
-        script_dict = json.load(f)
-
-    producir(script_dict=script_dict, output=OUTPUT_VIDEO, ffmpeg=FFMPEG)
 
 if __name__ == "__main__":
     flow()

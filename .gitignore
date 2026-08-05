@@ -9,7 +9,6 @@ __pycache__/
 .idea/
 
 # Outputs generados en cada ejecución
-output.wav
 script_dict.json
 
 # Modelos y binarios pesados
@@ -17,3 +16,4 @@ script_dict.json
 *.bin
 *.exe
 *.mp4
+*.wav
