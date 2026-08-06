@@ -7,7 +7,9 @@ from src.agents import (
     control_agent,
     script_agent_2,
     script_control_3,
-    broadcaster_kokoro, image_agent_v9, image_agent_v8
+    broadcaster_kokoro,
+    image_agent_v9, image_agent_v8,
+    seo_agent
 )
 from src.scraper import get_articles
 from src.produccion import producir
@@ -18,6 +20,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 SCRIPT_DICT_PATH = Path(__file__).parent / "script_dict.json"
+SEO_DICT_PATH = Path(__file__).parent / "seo_dict.json"
 OUTPUT_VIDEO     = Path(__file__).parent / "video" / "episode.mp4"
 FFMPEG           = Path(__file__).parent / "assets" / "audio" / "ffmpeg.exe"
 IMAGES_PATH = Path(__file__).parent / "assets" / "news_images"
@@ -114,7 +117,7 @@ def flow():
     print(f"script_dict guardado en {SCRIPT_DICT_PATH}")
 
     # ------------------------------------------------------------------
-    # 7. Build the video
+    # 7. Build the video and shorts
     # ------------------------------------------------------------------
     producir(
         script_dict=script_dict,
@@ -124,11 +127,22 @@ def flow():
 
     produce_shorts()
 
+    # ------------------------------------------------------------------
+    # 8. Build the seo for youtube
+    # ------------------------------------------------------------------
+
+    seo = seo_agent(script_dict)
+
+    with open(SEO_DICT_PATH, "w", encoding="utf-8") as f:
+        json.dump(seo, f, ensure_ascii=False, indent=2, default=str)
+    print(f"seo_dict guardado en {SEO_DICT_PATH}")
+
     # --------------------------------------------------------------
-    # 8. Delete temporal images and audios
+    # 9. Delete temporal images and audios
     #---------------------------------------------------------------
 
     delete()
+
 
 if __name__ == "__main__":
     flow()

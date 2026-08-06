@@ -1,7 +1,7 @@
 import ollama
 import json
 from pathlib import Path
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional
 import os
 import asyncio
@@ -84,6 +84,24 @@ class CorrectedSection(BaseModel):
 class ImageQueriesList(BaseModel):
     queries: List[str]
 
+class EpisodeSEO(BaseModel):
+    title: str
+    description: str
+    hashtags: list[str]
+    keywords: list[str]
+    thumbnail_text: str
+
+
+class ShortSEO(BaseModel):
+    news_id: int
+    title: str
+    description: str
+    hashtags: list[str]
+
+
+class SEOFullMetadata(BaseModel):
+    episode: EpisodeSEO
+    shorts: list[ShortSEO] = Field(default_factory=list)
 
 # ---------------------------------------------------------------------------
 # Base agent
@@ -127,6 +145,7 @@ script_model = "qwen3:8b"
 script_control_model = "qwen3:8b"
 image_model = "qwen3:8b"
 vision_model = "qwen3-vl:8b"
+seo_model = "qwen3:8b"
 
 # ---------------------------------------------------------------------------
 # Filter Agent
@@ -2002,3 +2021,320 @@ def broadcaster_kokoro(
     print(f"[Kokoro] ✓ Audio total: {total:.1f}s  →  {out}")
 
     return "\n\n".join(s["text"] for s in sections)
+
+# ---------------------------------------------------------------------------
+# SEO Agent
+# ---------------------------------------------------------------------------
+
+try:
+    locale.setlocale(locale.LC_TIME, "es_ES.UTF-8")
+except:
+    pass
+
+
+
+def seo_agent(script_dict: dict) -> dict:
+    """
+    Genera toda la metadata SEO del episodio y de todos los Shorts
+    en una única llamada al modelo.
+    """
+
+    model = seo_model
+    print("Generando metadata SEO...")
+
+    dias = [
+        "Lunes",
+        "Martes",
+        "Miércoles",
+        "Jueves",
+        "Viernes",
+        "Sábado",
+        "Domingo"
+    ]
+
+    meses = [
+        "enero",
+        "febrero",
+        "marzo",
+        "abril",
+        "mayo",
+        "junio",
+        "julio",
+        "agosto",
+        "septiembre",
+        "octubre",
+        "noviembre",
+        "diciembre"
+    ]
+
+    hoy = datetime.now()
+
+    date = f"{hoy.day} de {meses[hoy.month - 1]} de {hoy.year}"
+
+
+    # ============================================
+    # Construir contexto del episodio
+    # ============================================
+
+    news = []
+
+    for section in script_dict.get("sections", []):
+
+        if not section["type"].startswith("news_"):
+            continue
+
+        news.append(
+            {
+                "news_id": int(section["type"].split("_")[1]),
+                "title": section["title"],
+                "summary": section.get("resume", ""),
+                "script": section.get("text", ""),
+                "duration": round(section.get("audio_duration", 0), 1),
+            }
+        )
+
+    total_duration = round(
+        sum(
+            s.get("audio_duration", 0)
+            for s in script_dict["sections"]
+        ),
+        1,
+    )
+
+    episode_script = "\n\n".join(
+        section["text"]
+        for section in script_dict["sections"]
+        if section["type"] == "intro"
+        or section["type"] == "outro"
+        or section["type"].startswith("news_")
+    )
+
+    # ============================================
+    # System prompt
+    # ============================================
+
+    system = """
+        Eres un experto en SEO para YouTube especializado en economía, mercados,
+        bolsa, macroeconomía e inteligencia artificial.
+        
+        Tu trabajo consiste en maximizar el CTR sin utilizar clickbait engañoso.
+        
+        REGLAS OBLIGATORIAS
+        
+        - Nunca inventes información.
+        - Usa únicamente la información recibida.
+        - Analiza todas las noticias antes de decidir cuál es la principal.
+        - Elige la noticia con mayor impacto económico como protagonista del episodio.
+        - Usa lenguaje periodístico.
+        - Sin emojis.
+        - Sin mayúsculas innecesarias.
+        - Sin comillas.
+        - Devuelve EXCLUSIVAMENTE JSON válido.
+        """
+
+    # ============================================
+    # User prompt
+    # ============================================
+    news_ids = [n["news_id"] for n in news]
+
+    prompt = f"""
+        Fecha del episodio:
+        
+        {date}
+        
+        Duración aproximada:
+        
+        {total_duration:.0f} segundos
+        
+        Noticias:
+        
+        {json.dumps(news, ensure_ascii=False, indent=2)}
+        
+        Guion completo:
+        
+        {episode_script}
+        
+        Devuelve EXACTAMENTE este JSON:
+        
+        {{
+            "episode": {{
+                "main_topic":"",
+                "secondary_topics":[],
+                "thumbnail_text":"",
+                "title":"",
+                "description":"",
+                "hashtags":[],
+                "keywords":[]
+            }},
+            "shorts":[
+                {{
+                    "news_id":1,
+                    "filename":"short_01.mp4",
+                    "title":"",
+                    "description":"",
+                    "hashtags":[]
+                }}
+            ]
+        }}
+        
+        ============================
+        EPISODIO
+        ============================
+        
+        Analiza todas las noticias y decide cuál es la MÁS IMPORTANTE.
+        
+        Utilízala como protagonista del vídeo.
+        
+        title
+        
+        - máximo 90 caracteres
+        - comenzar por "Macro Diario | {date}"
+        - incluir la keyword principal
+        - tono profesional
+        - generar curiosidad
+        - sin clickbait falso
+        - sin emojis
+        
+        description
+        
+        4 párrafos.
+        
+        1.
+        Resumen del episodio.
+        
+        2.
+        Qué aprenderá el espectador.
+        
+        3.
+        Invitación a suscribirse para recibir el resumen diario de los mercados.
+        
+        4.
+        Terminar con los hashtags.
+        
+        hashtags
+        
+        Entre 8 y 12.
+        
+        Mezclar hashtags generales como
+        
+        #Economia
+        #Mercados
+        #Bolsa
+        #Finanzas
+        
+        con hashtags específicos de las noticias.
+        
+        keywords
+        
+        Entre 15 y 20 keywords.
+        
+        thumbnail_text
+        
+        Máximo 5 palabras.
+        
+        Ejemplos:
+        
+        FED mantiene tipos
+        
+        Nvidia sorprende
+        
+        Amazon impulsa la IA
+        
+        Micron desafía a Nvidia
+        
+        secondary_topics
+        
+        Lista con los siguientes temas más relevantes.
+        
+        ============================
+        SHORTS
+        ============================
+        
+        Debes generar EXACTAMENTE {len(news)} shorts.
+        
+        Los news_id permitidos son:
+        
+        {news_ids}
+        
+        No puedes devolver menos.
+        
+        No puedes devolver más.
+        
+        Cada news_id debe aparecer exactamente una vez.
+        
+        Si falta alguno, la respuesta será considerada incorrecta.
+        
+        Debe existir un objeto para cada uno.
+        
+        Para cada uno:
+        
+        filename
+        
+        Debe ser
+        
+        short_01.mp4
+        short_02.mp4
+        ...
+        
+        según el news_id.
+        
+        title
+        
+        Máximo 65 caracteres.
+        
+        Comenzar por "Macro Diario".
+        
+        Debe generar curiosidad.
+        
+        description
+        
+        2 o 3 líneas.
+        
+        hashtags
+        
+        Entre 4 y 6.
+        
+        Siempre incluir
+        
+        #Shorts
+        
+        No añadas texto fuera del JSON.
+        """
+
+    # ============================================
+    # Inferencia
+    # ============================================
+
+    result = run_agent(
+        system=system,
+        prompt=prompt,
+        model=model,
+        schema=SEOFullMetadata,
+        temperature=0.2,)
+
+    # ============================================
+    # Limpieza
+    # ============================================
+
+    result.episode.title = result.episode.title.strip()[:90]
+    result.episode.description = result.episode.description.strip()
+
+    result.episode.hashtags = [
+        h if h.startswith("#") else f"#{h}"
+        for h in result.episode.hashtags
+    ]
+
+    for short in result.shorts:
+
+        short.title = short.title.strip()[:65]
+        short.description = short.description.strip()
+
+        short.hashtags = [
+            h if h.startswith("#") else f"#{h}"
+            for h in short.hashtags
+        ]
+
+        if "#Shorts" not in short.hashtags:
+            short.hashtags.insert(0, "#Shorts")
+
+    return result.model_dump()
