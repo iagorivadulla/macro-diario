@@ -491,6 +491,8 @@ def script_agent_2(news: list) -> dict:
                 "-contexto"
                 
                 "Tu unica función es enlazar el bloque anterior con el siguiente."
+                "Es preferible separar las secciones con una ráfaga gráfica/sonora breve y una entradilla directa "
+                "(Pasando a resultados industriales...) en lugar de intentar forzar una relación causal que no existe entre dos empresas o sectores distintos."
                 "Mas adelante corto por codigo a 18 palabras"
             )
 
