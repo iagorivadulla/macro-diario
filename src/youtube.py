@@ -84,6 +84,10 @@ def upload_youtube_long(video_path, title, description):
     #wait for 5 minutes to yt test our video
     time.sleep(300)
 
+    for i in range(300, 0, -1):
+        print(f"Esperando {i} segundos hasta publicar", end="\r", flush=True)
+        time.sleep(1)
+
     #PUBLISH!!!!!
     publish = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="done-button"]/ytcp-button-shape/button')))
     publish.click()
@@ -182,9 +186,13 @@ def upload_youtube_short(video_path, title, description, long_title):
     # wait for 5 minutes to yt test our video
     time.sleep(300)
 
+    for i in range(300, 0, -1):
+        print(f"Esperando {i} segundos hasta publicar", end="\r", flush=True)
+        time.sleep(1)
+
     # PUBLISH!!!!!
     publish = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="done-button"]/ytcp-button-shape/button')))
-    #publish.click()
+    publish.click()
 
     time.sleep(15)
     driver.quit()
@@ -205,7 +213,7 @@ def publish(seo_dict: json):
     VIDEO_PATH = Path(__file__).parent.parent / "video" / "episode.mp4"
 
     #uploads all the info
-    #upload_youtube_long(VIDEO_PATH, long_title, long_description_hashtags)
+    upload_youtube_long(VIDEO_PATH, long_title, long_description_hashtags)
 
     SHORTS_PATH = Path(__file__).parent.parent / "video" / "shorts"
 
@@ -222,9 +230,5 @@ def publish(seo_dict: json):
 
 
 if __name__ == "__main__":
-    video_path = r"C:\Users\usuario\Desktop\Python\Macro News\video\shorts\short_01.mp4"
-    title = 'Tests 1 - 2'
-    description = 'Tests 3 - 4'
-    long_title = 'Macro Diario | 7 de agosto de 2026: Fed y la inflación, ¿suben los tipos?'
     seo = r'C:\Users\usuario\Desktop\Python\Macro News\seo_dict.json'
     publish(seo)
