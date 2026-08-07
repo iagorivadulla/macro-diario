@@ -5,8 +5,10 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
-def upload_youtube(video_path, title, description):
+def upload_youtube_long(video_path, title, description):
     # load options
     # In cmd uses "C:\Program Files\Google\Chrome\Application\chrome.exe" --user-data-dir="C:\ChromeSelenium"
     # open chrome sesion and select youtube channel, now seems to work
@@ -52,8 +54,41 @@ def upload_youtube(video_path, title, description):
     descripcion.click()
     descripcion.send_keys(description)
 
+    wait = WebDriverWait(driver, 20)
+
+    #click mostrar mas section
+    mostrar_mas = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="toggle-button"]/ytcp-button-shape/button')))
+    mostrar_mas.click()
+
+    #click confirm the video has ia
+    ia_confirm = wait.until(EC.element_to_be_clickable((By.XPATH, '//tp-yt-paper-radio-button[.//*[normalize-space(text())="Sí"]]')))
+    ia_confirm.click()
+
+    #next click
+    next = driver.find_element(By.XPATH, '//*[@id="next-button"]/ytcp-button-shape/button')
+    next.click()
+    driver.implicitly_wait(15)
+
+    next.click()
+    driver.implicitly_wait(15)
+
+    next.click()
+    driver.implicitly_wait(15)
+
+    #click public button to publish the video now
+    publico = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="privacy-radios"]/tp-yt-paper-radio-button[3]')))
+    publico.click()
+    driver.implicitly_wait(15)
+
+    #wait for 5 minutes to yt test our video
+    time.sleep(300)
+
+    #PUBLISH!!!!!
+    publish = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="done-button"]/ytcp-button-shape/button')))
+    publish.click()
+
 if __name__ == "__main__":
     video_path = r"C:\Users\usuario\Desktop\Python\Macro News\video\episode.mp4"
     title = 'Tests 1 - 2'
     description = 'Tests 3 - 4'
-    upload_youtube(video_path, title, description)
+    upload_youtube_long(video_path, title, description)
