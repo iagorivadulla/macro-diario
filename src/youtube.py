@@ -215,9 +215,11 @@ def publish(seo_dict: json):
     #uploads all the info
     upload_youtube_long(VIDEO_PATH, long_title, long_description_hashtags)
 
+    #now uploads the shorts
     SHORTS_PATH = Path(__file__).parent.parent / "video" / "shorts"
 
-    for i, file in enumerate(os.listdir(SHORTS_PATH)):
+    #do this once for every short
+    for i, file in enumerate(os.listdir(SHORTS_PATH)): #get all names and index
         path = os.path.join(SHORTS_PATH, file)
         title = seo['shorts'][i]['title']
         description = seo['shorts'][i]['description']
