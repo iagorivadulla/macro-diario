@@ -1,6 +1,7 @@
 import os
 import time
 import json
+from pathlib import Path
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
@@ -87,6 +88,9 @@ def upload_youtube_long(video_path, title, description):
     publish = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="done-button"]/ytcp-button-shape/button')))
     publish.click()
 
+    time.sleep(10)
+    driver.quit()
+
 def upload_youtube_short(video_path, title, description, long_title):
     # load options
     # In cmd uses "C:\Program Files\Google\Chrome\Application\chrome.exe" --user-data-dir="C:\ChromeSelenium"
@@ -169,6 +173,52 @@ def upload_youtube_short(video_path, title, description, long_title):
     next.click()
     driver.implicitly_wait(15)
 
+    # click public button to publish the video now
+    publico = wait.until(
+        EC.element_to_be_clickable((By.XPATH, '//*[@id="privacy-radios"]/tp-yt-paper-radio-button[3]')))
+    publico.click()
+    driver.implicitly_wait(15)
+
+    # wait for 5 minutes to yt test our video
+    time.sleep(300)
+
+    # PUBLISH!!!!!
+    publish = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="done-button"]/ytcp-button-shape/button')))
+    #publish.click()
+
+    time.sleep(15)
+    driver.quit()
+
+def publish(seo_dict: json):
+
+    #loads the seo_dict and uses the title and the description
+
+    with open(seo_dict, 'r', encoding='utf-8') as f:
+        seo = json.load(f)
+
+    #get all the long video info
+    long_title = seo['episode']['title']
+    long_description = seo['episode']['description']
+    long_hashtags = " ".join(seo['episode']['hashtags'])
+    long_description_hashtags = long_description + '\n\n' + long_hashtags
+
+    VIDEO_PATH = Path(__file__).parent.parent / "video" / "episode.mp4"
+
+    #uploads all the info
+    #upload_youtube_long(VIDEO_PATH, long_title, long_description_hashtags)
+
+    SHORTS_PATH = Path(__file__).parent.parent / "video" / "shorts"
+
+    for i, file in enumerate(os.listdir(SHORTS_PATH)):
+        path = os.path.join(SHORTS_PATH, file)
+        title = seo['shorts'][i]['title']
+        description = seo['shorts'][i]['description']
+        hashtags = " ".join(seo['shorts'][i]['hashtags'])
+        description_hashtags = description + '\n\n' + hashtags
+
+        upload_youtube_short(path, title, description_hashtags, long_title)
+
+
 
 
 if __name__ == "__main__":
@@ -176,4 +226,5 @@ if __name__ == "__main__":
     title = 'Tests 1 - 2'
     description = 'Tests 3 - 4'
     long_title = 'Macro Diario | 7 de agosto de 2026: Fed y la inflación, ¿suben los tipos?'
-    upload_youtube_short(video_path, title, description, long_title)
+    seo = r'C:\Users\usuario\Desktop\Python\Macro News\seo_dict.json'
+    publish(seo)
