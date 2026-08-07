@@ -14,6 +14,7 @@ from src.agents import (
 from src.scraper import get_articles
 from src.produccion import producir
 from src.produccion_shorts import produce_shorts
+from src.youtube import publish
 import os
 import warnings
 
@@ -142,6 +143,12 @@ def flow():
     #---------------------------------------------------------------
 
     delete()
+
+    # --------------------------------------------------------------
+    # 9.Youtube Auto Publish
+    #---------------------------------------------------------------
+
+    publish(seo)
 
 
 if __name__ == "__main__":
