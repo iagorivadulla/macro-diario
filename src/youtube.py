@@ -256,7 +256,7 @@ def publish(seo_dict: json):
     VIDEO_PATH = r"C:\Users\usuario\Desktop\Python\Macro News\video\episode.mp4"
 
     #uploads all the info
-    #upload_youtube_long(VIDEO_PATH, long_title, long_description_hashtags)
+    upload_youtube_long(VIDEO_PATH, long_title, long_description_hashtags)
 
     #now uploads the shorts
     SHORTS_PATH = r"C:\Users\usuario\Desktop\Python\Macro News\video\shorts"
@@ -269,7 +269,7 @@ def publish(seo_dict: json):
         hashtags = " ".join(seo['shorts'][i]['hashtags'])
         description_hashtags = description + '\n\n' + hashtags
 
-        #upload_youtube_short(path, title, description_hashtags, long_title)
+        upload_youtube_short(path, title, description_hashtags, long_title)
 
     #now every short to tik tok
     for i, file in enumerate(os.listdir(SHORTS_PATH)): #get all names and index
