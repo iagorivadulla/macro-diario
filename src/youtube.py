@@ -193,6 +193,53 @@ def upload_youtube_short(video_path, title, description, long_title):
     time.sleep(15)
     driver.quit()
 
+def upload_tiktok(video_path, description):
+    #upload shorts to tiktok
+
+    chrome_options = Options()
+    chrome_options.add_argument(
+        r"--user-data-dir=C:\ChromeSelenium")  # Neded to copy the default chrome user to this path
+    chrome_options.add_argument("--profile-directory=Default")
+
+    chrome_options.add_experimental_option("detach", True)
+
+    # starts driver
+    driver = webdriver.Chrome(options=chrome_options)
+
+    driver.get("https://www.tiktok.com/tiktokstudio/upload?from=webapp&tab=video")
+
+    driver.implicitly_wait(5)
+
+    # finds the file upload and sends it
+    driver.find_element(By.CSS_SELECTOR, "input[type='file']").send_keys(video_path)
+
+    driver.implicitly_wait(15)
+
+    # find description field
+    descripcion = driver.find_element(By.XPATH,
+                                      '//div[@contenteditable="true"]')
+
+    # writes description
+    descripcion.click()
+    descripcion.send_keys(Keys.CONTROL, "a")
+    descripcion.send_keys(description)
+
+    wait = WebDriverWait(driver, 20)
+
+    # wait for 5 minutes to yt test our video
+    for i in range(150, 0, -1):
+        print(f"Esperando {i} segundos hasta publicar", flush=True)
+        time.sleep(1)
+
+    #PUBLISH!!!
+    publish = wait.until(EC.element_to_be_clickable((By.XPATH, '/html/body/div[1]/div/div/div[2]/div[2]/div/div/div/div/div/div[6]/div/button[1]')))
+    publish.click()
+
+    time.sleep(10)
+    driver.quit()
+
+
+
 def publish(seo_dict: json):
 
     #loads the seo_dict and uses the title and the description
@@ -209,12 +256,12 @@ def publish(seo_dict: json):
     VIDEO_PATH = r"C:\Users\usuario\Desktop\Python\Macro News\video\episode.mp4"
 
     #uploads all the info
-    upload_youtube_long(VIDEO_PATH, long_title, long_description_hashtags)
+    #upload_youtube_long(VIDEO_PATH, long_title, long_description_hashtags)
 
     #now uploads the shorts
     SHORTS_PATH = r"C:\Users\usuario\Desktop\Python\Macro News\video\shorts"
 
-    #do this once for every short
+    #do this once for every short in youtube
     for i, file in enumerate(os.listdir(SHORTS_PATH)): #get all names and index
         path = os.path.join(SHORTS_PATH, file)
         title = seo['shorts'][i]['title']
@@ -222,7 +269,17 @@ def publish(seo_dict: json):
         hashtags = " ".join(seo['shorts'][i]['hashtags'])
         description_hashtags = description + '\n\n' + hashtags
 
-        upload_youtube_short(path, title, description_hashtags, long_title)
+        #upload_youtube_short(path, title, description_hashtags, long_title)
+
+    #now every short to tik tok
+    for i, file in enumerate(os.listdir(SHORTS_PATH)): #get all names and index
+        path = os.path.join(SHORTS_PATH, file)
+        title = seo['shorts'][i]['title']
+        description = seo['shorts'][i]['description']
+        hashtags = " ".join(seo['shorts'][i]['hashtags'])
+        description_hashtags = description + '\n\n' + hashtags
+
+        upload_tiktok(path, description_hashtags)
 
 
 
