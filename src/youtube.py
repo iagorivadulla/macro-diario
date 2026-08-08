@@ -247,6 +247,7 @@ def publish(seo_dict: json):
     with open(seo_dict, 'r', encoding='utf-8') as f:
         seo = json.load(f)
 
+    print('[Publishing] Starting youtube long video upload..')
     #get all the long video info
     long_title = seo['episode']['title']
     long_description = seo['episode']['description']
@@ -261,6 +262,7 @@ def publish(seo_dict: json):
     #now uploads the shorts
     SHORTS_PATH = r"C:\Users\usuario\Desktop\Python\Macro News\video\shorts"
 
+    print("[Publishing] Starting youtube short videos upload..")
     #do this once for every short in youtube
     for i, file in enumerate(os.listdir(SHORTS_PATH)): #get all names and index
         path = os.path.join(SHORTS_PATH, file)
@@ -271,6 +273,7 @@ def publish(seo_dict: json):
 
         upload_youtube_short(path, title, description_hashtags, long_title)
 
+    print("[Publishing] Starting tik tok short videos upload..")
     #now every short to tik tok
     for i, file in enumerate(os.listdir(SHORTS_PATH)): #get all names and index
         path = os.path.join(SHORTS_PATH, file)
