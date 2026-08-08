@@ -148,7 +148,7 @@ def flow():
     # 9.Youtube Auto Publish
     #---------------------------------------------------------------
 
-    publish(seo)
+    publish(SEO_DICT_PATH)
 
 
 if __name__ == "__main__":

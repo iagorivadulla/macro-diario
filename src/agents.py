@@ -2284,7 +2284,7 @@ def seo_agent(script_dict: dict) -> dict:
         
         Máximo 65 caracteres.
         
-        Comenzar por "Macro Diario".
+        Comenzar por "Macro Diario | ".
         
         Debe generar curiosidad.
         
@@ -2318,7 +2318,7 @@ def seo_agent(script_dict: dict) -> dict:
     # Limpieza
     # ============================================
 
-    result.episode.title = result.episode.title.strip()[:90]
+    result.episode.title = result.episode.title.strip()
     result.episode.description = result.episode.description.strip()
 
     result.episode.hashtags = [
@@ -2328,7 +2328,7 @@ def seo_agent(script_dict: dict) -> dict:
 
     for short in result.shorts:
 
-        short.title = short.title.strip()[:65]
+        short.title = short.title.strip()
         short.description = short.description.strip()
 
         short.hashtags = [

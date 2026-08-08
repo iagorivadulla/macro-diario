@@ -82,10 +82,8 @@ def upload_youtube_long(video_path, title, description):
     driver.implicitly_wait(15)
 
     #wait for 5 minutes to yt test our video
-    time.sleep(300)
-
     for i in range(300, 0, -1):
-        print(f"Esperando {i} segundos hasta publicar", end="\r", flush=True)
+        print(f"Esperando {i} segundos hasta publicar", flush=True)
         time.sleep(1)
 
     #PUBLISH!!!!!
@@ -184,10 +182,8 @@ def upload_youtube_short(video_path, title, description, long_title):
     driver.implicitly_wait(15)
 
     # wait for 5 minutes to yt test our video
-    time.sleep(300)
-
     for i in range(300, 0, -1):
-        print(f"Esperando {i} segundos hasta publicar", end="\r", flush=True)
+        print(f"Esperando {i} segundos hasta publicar", flush=True)
         time.sleep(1)
 
     # PUBLISH!!!!!
@@ -210,13 +206,13 @@ def publish(seo_dict: json):
     long_hashtags = " ".join(seo['episode']['hashtags'])
     long_description_hashtags = long_description + '\n\n' + long_hashtags
 
-    VIDEO_PATH = Path(__file__).parent.parent / "video" / "episode.mp4"
+    VIDEO_PATH = r"C:\Users\usuario\Desktop\Python\Macro News\video\episode.mp4"
 
     #uploads all the info
     upload_youtube_long(VIDEO_PATH, long_title, long_description_hashtags)
 
     #now uploads the shorts
-    SHORTS_PATH = Path(__file__).parent.parent / "video" / "shorts"
+    SHORTS_PATH = r"C:\Users\usuario\Desktop\Python\Macro News\video\shorts"
 
     #do this once for every short
     for i, file in enumerate(os.listdir(SHORTS_PATH)): #get all names and index

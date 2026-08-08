@@ -10,6 +10,7 @@ __pycache__/
 
 # Outputs generados en cada ejecución
 script_dict.json
+seo_dict.json
 
 #images downloaded
 assets/news_images/*
@@ -21,3 +22,8 @@ assets/news_images/*
 *.mp4
 *.wav
 *.mp3
+
+#cookies
+cookies.txt
+
+src/chrome-data
