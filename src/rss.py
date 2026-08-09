@@ -1,5 +1,5 @@
 import feedparser
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from sympy import public
 
 
@@ -10,20 +10,22 @@ def read_feed_yahoo():
 
     news = []
 
-    today = datetime.today().date()
+    now = datetime.now(timezone.utc)
+    max_age = timedelta(hours=24)
 
-    for entry in range(len(feed.entries)):
+    for entry in feed.entries:
 
-        pub_datetime = datetime.strptime(feed.entries[entry].published, "%Y-%m-%dT%H:%M:%SZ")
+        pub_datetime = datetime.strptime(
+            entry.published,
+            "%Y-%m-%dT%H:%M:%SZ"
+        ).replace(tzinfo=timezone.utc)
 
-        pub_date = pub_datetime.date()
-
-        if pub_date == pub_date: #change this
+        if now - pub_datetime <= max_age:
             news.append({
-            'title': feed.entries[entry].title,
-            'link': feed.entries[entry].link,
-            'published': feed.entries[entry].published,
-        })
+                'title': entry.title,
+                'link': entry.link,
+                'published': entry.published,
+            })
 
     return news
 
