@@ -85,23 +85,34 @@ class ImageQueriesList(BaseModel):
     queries: List[str]
 
 class EpisodeSEO(BaseModel):
+    main_news_id: int
+    primary_keyword: str
+    secondary_keywords: list[str]
     title: str
     description: str
     hashtags: list[str]
-    keywords: list[str]
-    thumbnail_text: str
 
 
 class ShortSEO(BaseModel):
     news_id: int
+    primary_keyword: str
+    secondary_keywords: list[str]
     title: str
     description: str
     hashtags: list[str]
 
 
+class TiktokSEO(BaseModel):
+    news_id: int
+    primary_keyword: str
+    secondary_keywords: list[str]
+    title: str
+    hashtags: list[str]
+
 class SEOFullMetadata(BaseModel):
     episode: EpisodeSEO
     shorts: list[ShortSEO] = Field(default_factory=list)
+    tiktoks: list[TiktokSEO] = Field(default_factory=list)
 
 # ---------------------------------------------------------------------------
 # Base agent
@@ -2038,36 +2049,14 @@ except:
 def seo_agent(script_dict: dict) -> dict:
     """
     Genera toda la metadata SEO del episodio y de todos los Shorts
-    en una única llamada al modelo.
     """
 
     model = seo_model
     print("Generando metadata SEO...")
 
-    dias = [
-        "Lunes",
-        "Martes",
-        "Miércoles",
-        "Jueves",
-        "Viernes",
-        "Sábado",
-        "Domingo"
-    ]
+    dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
 
-    meses = [
-        "enero",
-        "febrero",
-        "marzo",
-        "abril",
-        "mayo",
-        "junio",
-        "julio",
-        "agosto",
-        "septiembre",
-        "octubre",
-        "noviembre",
-        "diciembre"
-    ]
+    meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
 
     hoy = datetime.now()
 
@@ -2340,3 +2329,478 @@ def seo_agent(script_dict: dict) -> dict:
             short.hashtags.insert(0, "#Shorts")
 
     return result.model_dump()
+
+def seo_agent_v2(script_dict: dict):
+    '''
+    Genera toda la metadata SEO del episodio y de todos los Shorts
+    '''
+
+    full_seo_data = {}
+
+    model = seo_model
+    print("Generando metadata SEO...")
+
+    meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre",
+             "noviembre", "diciembre"]
+
+    hoy = datetime.now()
+
+    date = f"{hoy.day} de {meses[hoy.month - 1]} de {hoy.year}"
+
+    news = []
+
+    for section in script_dict.get("sections", []):
+
+        if not section["type"].startswith("news_"):
+            continue
+
+        news.append({
+            "news_id": int(section["type"].split("_")[1]),
+            "title": section["title"],
+            "summary": section.get("resume", ""),})
+    #-------------------------------------------------------------
+    # System Prompt
+    #-------------------------------------------------------------
+
+    system = """
+    Eres un especialista senior en SEO y descubrimiento de contenido
+    para YouTube y TikTok, especializado en economía, mercados financieros,
+    bolsa, macroeconomía, tecnología e inteligencia artificial.
+
+    Tu objetivo es maximizar la capacidad del contenido para ser descubierto
+    por usuarios interesados en estos temas y aumentar el CTR, manteniendo
+    siempre precisión periodística.
+
+    PRINCIPIOS FUNDAMENTALES:
+
+    - Nunca inventes información.
+    - Utiliza exclusivamente la información proporcionada.
+    - No atribuyas hechos, cifras o declaraciones que no aparezcan en los datos.
+    - No conviertas una posibilidad en un hecho.
+    - No utilices clickbait engañoso.
+    - No exageres las consecuencias de una noticia.
+    - Prioriza entidades, empresas, personas, mercados y conceptos realmente
+      presentes en la noticia.
+    - Utiliza lenguaje natural.
+    - Evita repetir innecesariamente la misma keyword.
+    - No hagas keyword stuffing.
+    - No uses emojis.
+    - No uses hashtags genéricos sin relación con el contenido.
+    - No utilices mayúsculas innecesarias.
+    - No utilices comillas.
+    - Los títulos deben ser atractivos pero periodísticamente honestos.
+
+    SEO:
+
+    La keyword principal debe representar aquello que un usuario realmente
+    buscaría para encontrar este contenido.
+
+    Prioriza keywords específicas sobre términos excesivamente generales.
+
+    Ejemplo:
+
+    MALA:
+    "mercados"
+
+    MEJOR:
+    "Bitcoin Strategy"
+    "Shopify inteligencia artificial"
+    "Meta vs Alphabet"
+    "vehículos autónomos Zoox"
+
+    Cuando una noticia contiene una empresa, activo, persona o concepto
+    relevante, considera esa entidad como posible keyword principal.
+
+    No introduzcas keywords que no estén respaldadas por la noticia.
+
+    YOUTUBE:
+
+    YouTube utiliza principalmente el título, la descripción, el contenido
+    del vídeo y el comportamiento de los usuarios para comprender y distribuir
+    el contenido.
+
+    El título debe ser claro, específico y atractivo.
+
+    La descripción debe explicar naturalmente el contenido del vídeo e incluir
+    las principales entidades y conceptos de la noticia sin parecer escrita
+    para un buscador.
+
+    YOUTUBE SHORTS:
+
+    El título debe identificar rápidamente el tema principal del vídeo.
+    Prioriza reconocimiento inmediato y capacidad de descubrimiento.
+
+    TIKTOK:
+
+    El texto debe ser más directo y natural.
+
+    Prioriza términos que permitan identificar rápidamente el tema del vídeo
+    y hashtags estrechamente relacionados con la noticia.
+
+    HASHTAGS:
+
+    Utiliza únicamente hashtags directamente relacionados con el contenido.
+
+    Combina:
+    - tema principal
+    - entidad principal
+    - sector o categoría
+    - contexto económico
+
+    Evita utilizar demasiados hashtags.
+
+    FORMATO:
+
+    Devuelve EXCLUSIVAMENTE JSON válido.
+    No escribas explicaciones fuera del JSON.
+    """
+
+    #----------------------------------------------------------------------------
+    # Long Video Metadata
+    #----------------------------------------------------------------------------
+
+    print('Analizando video largo...')
+
+    long_video_prompt = f"""
+    Analiza TODAS las noticias del episodio antes de generar cualquier resultado.
+
+    FECHA DEL EPISODIO:
+    {date}
+
+    NOTICIAS:
+    {news}
+
+    ==================================================
+    PASO 1 — NOTICIA PROTAGONISTA
+    ==================================================
+
+    Identifica la noticia con mayor relevancia económica y mayor potencial
+    de interés para una audiencia interesada en:
+
+    - economía
+    - mercados
+    - bolsa
+    - inversión
+    - macroeconomía
+    - tecnología
+    - inteligencia artificial
+
+    No elijas necesariamente la noticia más llamativa.
+
+    Prioriza:
+    1. impacto económico
+    2. relevancia para inversores
+    3. relevancia de la empresa, activo o mercado implicado
+    4. claridad del tema
+    5. potencial de búsqueda
+    6. actualidad
+
+    Devuelve su news_id.
+
+    ==================================================
+    PASO 2 — KEYWORD PRINCIPAL
+    ==================================================
+
+    Identifica la keyword principal que un usuario podría utilizar para buscar
+    información sobre esta noticia.
+
+    La keyword debe ser específica.
+
+    Prioriza:
+
+    empresa + evento
+    activo + evento
+    persona + evento
+    mercado + evento
+    concepto económico + evento
+
+    No utilices una keyword genérica si existe una alternativa más específica.
+
+    ==================================================
+    PASO 3 — TÍTULO
+    ==================================================
+
+    Genera el título del vídeo.
+
+    REGLAS:
+
+    - Debe comenzar exactamente con:
+      Macro Diario | {date}:
+    - Máximo 90 caracteres.
+    - La keyword principal debe aparecer de forma natural.
+    - Debe ser comprensible sin contexto adicional.
+    - Debe despertar curiosidad legítima.
+    - Debe dejar claro cuál es el acontecimiento principal.
+    - No debe parecer un título genérico de noticias.
+    - No debe utilizar clickbait.
+    - No debe mencionar una noticia secundaria.
+    - No utilices emojis.
+    - No utilices comillas.
+
+    IMPORTANTE:
+
+    El prefijo y la fecha forman parte del límite de 90 caracteres.
+
+    ==================================================
+    PASO 4 — DESCRIPCIÓN
+    ==================================================
+
+    Genera una descripción optimizada para YouTube.
+
+    La descripción debe:
+
+    1. Comenzar explicando directamente la noticia protagonista.
+    2. Incluir naturalmente la keyword principal.
+    3. Incluir las principales entidades relacionadas.
+    4. Explicar brevemente qué ocurrió.
+    5. Explicar por qué importa para mercados o inversores.
+    6. Mencionar brevemente las demás noticias del episodio.
+    7. Incluir una llamada a suscribirse a Macro Diario.
+    8. Mantener lenguaje natural y periodístico.
+
+    No hagas una lista artificial de keywords.
+
+    No utilices hashtags dentro de la descripción.
+
+    ==================================================
+    PASO 5 — HASHTAGS
+    ==================================================
+
+    Genera entre 5 y 8 hashtags.
+
+    Deben combinar:
+    - tema principal
+    - entidad principal
+    - sector
+    - contexto económico
+
+    Todos deben estar directamente relacionados con las noticias.
+
+    Evita hashtags genéricos como:
+    #viral
+    #fyp
+    #trending
+    #parati
+
+    ==================================================
+
+    DEVUELVE EXCLUSIVAMENTE:
+        {{
+            "main_news_id": 0,
+            "primary_keyword": "",
+            "secondary_keywords": [],
+            "title": "",
+            "description": "",
+            "hashtags": []
+        }}
+    
+    """
+
+    long_video = run_agent(system, long_video_prompt, model, EpisodeSEO ,temperature=0.2)
+    full_seo_data['episode'] = long_video.model_dump()
+
+    #-----------------------------------------------------------------------------------
+    # Now for each short youtube and tik tok at same time
+    #-----------------------------------------------------------------------------------
+
+    print('Analizando shorts...')
+
+    shorts_data = []
+    tik_tok_data = []
+
+    for i in news:
+        short_prompt = f"""
+        Genera la metadata SEO para un YouTube Short basado exclusivamente
+        en esta noticia.
+
+        NOTICIA:
+
+        ID: {i["news_id"]}
+        TÍTULO: {i["title"]}
+        RESUMEN: {i["summary"]}
+
+        ==================================================
+        KEYWORD
+        ==================================================
+
+        Identifica:
+
+        - primary_keyword
+        - secondary_keywords
+
+        La keyword principal debe ser el término más importante que un usuario
+        utilizaría para encontrar esta noticia.
+
+        Debe ser específica y estar directamente respaldada por el contenido.
+
+        ==================================================
+        TÍTULO
+        ==================================================
+
+        Genera un título optimizado para YouTube Shorts.
+
+        REGLAS:
+
+        - Debe comenzar exactamente con:
+          Macro Diario |
+        - Máximo 90 caracteres.
+        - Debe contener la keyword principal de forma natural.
+        - Debe identificar inmediatamente el acontecimiento.
+        - Debe generar curiosidad legítima.
+        - Debe ser comprensible incluso para alguien que no haya visto el episodio.
+        - Prioriza entidades concretas: empresas, personas, activos o mercados.
+        - No inventes información.
+        - No utilices clickbait engañoso.
+        - No uses emojis.
+        - No uses comillas.
+        - No escribas todo en mayúsculas.
+
+        Evita títulos genéricos como:
+
+        Macro Diario | Las bolsas reaccionan a las últimas noticias
+
+        Prefiere títulos específicos como:
+
+        Macro Diario | Strategy vende Bitcoin y cambia su estrategia
+
+        ==================================================
+        DESCRIPCIÓN
+        ==================================================
+
+        Genera una descripción breve para YouTube Shorts.
+
+        Debe:
+
+        - explicar inmediatamente qué ocurrió
+        - incluir naturalmente la keyword principal
+        - mencionar las entidades relevantes
+        - explicar por qué importa
+        - ser fácil de leer
+        - no repetir keywords artificialmente
+
+        Termina con una llamada breve a seguir Macro Diario.
+
+        No incluyas hashtags dentro de la descripción.
+
+        ==================================================
+        HASHTAGS
+        ==================================================
+
+        Genera entre 4 y 6 hashtags.
+
+        Prioriza:
+
+        - keyword principal
+        - empresa o activo
+        - sector
+        - economía/mercados
+
+        No utilices hashtags genéricos como:
+        #viral
+        #fyp
+        #trending
+
+        ==================================================
+
+        DEVUELVE EXCLUSIVAMENTE:
+
+        {{
+            "short": {{
+                "news_id": {i["news_id"]},
+                "primary_keyword": "",
+                "secondary_keywords": [],
+                "title": "",
+                "description": "",
+                "hashtags": []
+            }}
+        }}
+        """
+
+        short_video = run_agent(system, short_prompt, model, ShortSEO, temperature=0.2)
+        shorts_data.append(short_video.model_dump())
+
+        tik_tok_prompt = f"""
+        Genera la metadata para TikTok basada exclusivamente en esta noticia.
+
+        NOTICIA:
+
+        ID: {i["news_id"]}
+        TÍTULO: {i["title"]}
+        RESUMEN: {i["summary"]}
+
+        ==================================================
+        KEYWORD
+        ==================================================
+
+        Identifica la keyword principal y hasta 4 keywords secundarias.
+
+        La keyword principal debe representar el concepto, empresa, activo,
+        persona o acontecimiento que un usuario podría buscar relacionado
+        con esta noticia.
+
+        ==================================================
+        TÍTULO / TEXTO DE DESCUBRIMIENTO
+        ==================================================
+
+        Genera un título o texto corto para acompañar el vídeo.
+
+        REGLAS:
+
+        - Máximo 90 caracteres.
+        - Debe mencionar el tema principal de forma inmediata.
+        - Debe incluir la keyword principal de forma natural.
+        - Debe despertar curiosidad.
+        - Debe sonar natural en TikTok.
+        - Puede ser más directo que un titular periodístico tradicional.
+        - No inventes información.
+        - No utilices clickbait engañoso.
+        - No uses emojis.
+        - No uses comillas.
+
+        ==================================================
+        HASHTAGS
+        ==================================================
+
+        Genera entre 4 y 6 hashtags.
+
+        Los hashtags deben tener una relación directa con la noticia.
+
+        Combina:
+
+        1. keyword principal
+        2. empresa/persona/activo
+        3. sector
+        4. contexto económico
+
+        Evita hashtags genéricos o diseñados únicamente para intentar conseguir
+        viralidad.
+
+        No utilices:
+        #fyp
+        #viral
+        #parati
+        #trending
+
+        si no aportan información sobre el contenido.
+
+        ==================================================
+
+        DEVUELVE EXCLUSIVAMENTE:
+
+        {{
+            "tik_tok": {{
+                "news_id": {i["news_id"]},
+                "primary_keyword": "",
+                "secondary_keywords": [],
+                "title": "",
+                "hashtags": []
+            }}
+        }}
+        """
+
+        tik_tok_video = run_agent(system, tik_tok_prompt, model, TiktokSEO, temperature=0.2)
+        tik_tok_data.append(tik_tok_video.model_dump())
+    full_seo_data['shorts'] = shorts_data
+    full_seo_data['tiktok'] = tik_tok_data
+
+    return full_seo_data
