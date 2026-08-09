@@ -116,10 +116,13 @@ Con las historias aprobadas, el sistema genera un guion con una estructura narra
 Cada sección del episodio puede incorporar imágenes contextualmente adecuadas para reforzar la información.
 
 ### 5. Producción audiovisual
-Se genera la narración, se mezcla con música y voz, y se compone el vídeo final con un presentador visual.
+Se genera la narración, se mezcla con música y voz, y se compone el vídeo final con un presentador visual y un short por cada noticia.
 
-### 6. Shorts y SEO
-Además del video principal, el proyecto genera versiones cortas y metadatos para optimizar la distribución en plataformas como YouTube.
+### 6. SEO
+Se generan metadatos para optimizar la distribución en plataformas como YouTube y TikTok tanto del video principal como de los shorts.
+
+### 7. Publicación
+Se autopublica rellenando cada campo que se pide en Youtube y luego en TikTok
 
 ---
 
