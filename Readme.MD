@@ -41,11 +41,15 @@ Resumen + validación de calidad
         ↓
 Guion + revisión periodística
         ↓
-Búsqueda de imágenes + voz sintética
+Búsqueda de imágenes
         ↓
-Composición del video final
+voz sintética
         ↓
-Shorts + metadata SEO + publicación
+Composición del video final + Shorts
+        ↓
+Metadata SEO
+        ↓
+Publicación
 ```
 
 ---
