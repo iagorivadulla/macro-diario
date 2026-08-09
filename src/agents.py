@@ -2370,6 +2370,8 @@ def seo_agent_v2(script_dict: dict):
     Tu objetivo es maximizar la capacidad del contenido para ser descubierto
     por usuarios interesados en estos temas y aumentar el CTR, manteniendo
     siempre precisión periodística.
+    
+    IMPORTANTE ASEGURARSE QUE ESTA TODO EN CASTELLANO
 
     PRINCIPIOS FUNDAMENTALES:
 
