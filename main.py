@@ -9,7 +9,7 @@ from src.agents import (
     script_control_3,
     broadcaster_kokoro,
     image_agent_v9, image_agent_v8,
-    seo_agent
+    seo_agent_v2
 )
 from src.scraper import get_articles
 from src.produccion import producir
@@ -133,7 +133,7 @@ def flow():
     # 8. Build the seo for youtube
     # ------------------------------------------------------------------
 
-    seo = seo_agent(script_dict)
+    seo = seo_agent_v2(script_dict)
 
     with open(SEO_DICT_PATH, "w", encoding="utf-8") as f:
         json.dump(seo, f, ensure_ascii=False, indent=2, default=str)
