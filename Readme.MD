@@ -26,7 +26,9 @@ Macro Diario automatiza todo el ciclo editorial y audiovisual de un programa de 
 - busca recursos visuales compatibles con cada tema
 - genera voz en off local con síntesis de texto a voz
 - compone el vídeo final con presentador, imágenes y audio
-- prepara versiones cortas para redes sociales y metadatos SEO
+- prepara versiones cortas para redes sociales
+- redacta los metadatos para el SEO (titulos, descripciones, hashtags)
+- publica automaticamente en youtube y en tiktok
 
 ---
 
