@@ -29,13 +29,14 @@ AUDIO_PATH_FILE = Path(__file__).parent / "assets" / "audio" / "output.wav"
 SHORTS_AUDIO_PATH = Path(__file__).parent / "video" / "shorts"
 
 
-def delete():
+def delete_images():
 
     # Delete images
     for i in os.listdir(IMAGES_PATH):
         path = os.path.join(IMAGES_PATH, i)
         os.unlink(path)
 
+def delete_audios():
     # Delete output.wav
     os.unlink(AUDIO_PATH_FILE)
 
@@ -142,13 +143,15 @@ def flow():
     # 9. Delete temporal images and audios
     #---------------------------------------------------------------
 
-    delete()
+    delete_images()
+    delete_audios()
 
     # --------------------------------------------------------------
     # 9.Youtube Auto Publish
     #---------------------------------------------------------------
 
     publish(SEO_DICT_PATH)
+
 
 
 if __name__ == "__main__":

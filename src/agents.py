@@ -115,6 +115,7 @@ def run_agent(system: str, prompt: str, model: str, schema: BaseModel = None, te
             {"role": "user",   "content": prompt},
         ],
         "options": {"temperature": temperature, "num_ctx": num_ctx},
+
     }
     if schema:
         kwargs["format"] = schema.model_json_schema()
@@ -181,7 +182,6 @@ def filter_agent(news: list) -> list:
     context = load_context("filter_criteria.md")
 
     system = (
-
         "Eres un editor senior de noticias económicas. "
         "Sigues un criterio de selección estricto y documentado. "
         "Ante el mismo conjunto de titulares, siempre tomas la misma decisión. "

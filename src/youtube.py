@@ -226,7 +226,7 @@ def upload_tiktok(video_path, description):
 
     wait = WebDriverWait(driver, 20)
 
-    # wait for 5 minutes to yt test our video
+    # wait for 3 minutes to tktk test our video
     for i in range(150, 0, -1):
         print(f"Esperando {i} segundos hasta publicar", flush=True)
         time.sleep(1)
