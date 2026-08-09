@@ -277,10 +277,9 @@ def publish(seo_dict: json):
     #now every short to tik tok
     for i, file in enumerate(os.listdir(SHORTS_PATH)): #get all names and index
         path = os.path.join(SHORTS_PATH, file)
-        title = seo['shorts'][i]['title']
-        description = seo['shorts'][i]['description']
-        hashtags = " ".join(seo['shorts'][i]['hashtags'])
-        description_hashtags = description + '\n\n' + hashtags
+        title = seo['tiktok'][i]['title']
+        hashtags = " ".join(seo['tiktok'][i]['hashtags'])
+        description_hashtags = title + '\n\n' + hashtags
 
         upload_tiktok(path, description_hashtags)
 
