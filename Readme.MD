@@ -8,7 +8,7 @@
 [![OpenCV](https://img.shields.io/badge/OpenCV-video-5C3EE8?style=flat-square&logo=opencv)](https://opencv.org/)
 [![Pillow](https://img.shields.io/badge/Pillow-pixel--art-orange?style=flat-square)](https://pillow.readthedocs.io/)
 
-Macro Diario es un sistema de producción automatizada para crear contenido financiero en formato de vídeo y short a partir de noticias reales. Reúne información de fuentes RSS, la filtra con IA local, valida calidad editorial, genera guiones, busca imágenes, sintetiza la voz y compone el material final listo para publicar.
+Macro Diario es un sistema de producción automatizada para crear contenido financiero en formato de vídeo y short a partir de noticias reales. Reúne información de fuentes RSS, la filtra con IA local, valida calidad editorial, genera guiones, busca imágenes, sintetiza la voz y compone el material final y lo publica.
 
 📺 Canal actual: https://www.youtube.com/@MacroDiario
 
