@@ -181,8 +181,8 @@ def upload_youtube_short(video_path, title, description, long_title):
     publico.click()
     driver.implicitly_wait(15)
 
-    # wait for 5 minutes to yt test our video
-    for i in range(300, 0, -1):
+    # wait for 3 minutes to yt test our video
+    for i in range(180, 0, -1):
         print(f"Esperando {i} segundos hasta publicar", flush=True)
         time.sleep(1)
 

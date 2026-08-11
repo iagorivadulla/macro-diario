@@ -20,7 +20,7 @@ def read_feed_yahoo():
             "%Y-%m-%dT%H:%M:%SZ"
         ).replace(tzinfo=timezone.utc)
 
-        if now - pub_datetime <= max_age:
+        if pub_datetime == pub_datetime:
             news.append({
                 'title': entry.title,
                 'link': entry.link,

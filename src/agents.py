@@ -150,14 +150,23 @@ script_control_model = "llama3.1:8b-instruct-q4_K_M"
 image_model = "qwen2.5:7b-instruct-q4_K_M"
 vision_model = "llava:7b"
 '''
-filter_model = "qwen3:8b"
-resume_model = "qwen3:8b"
-control_model = "qwen3:8b"
-script_model = "qwen3:8b"
-script_control_model = "qwen3:8b"
-image_model = "qwen3:8b"
+filter_model = "deepseek-r1:8b"
+resume_model = "qwen2.5:7b"
+control_model = "deepseek-r1:8b"
+script_model = "llama3.1:8b"
+script_control_model = "deepseek-r1:8b"
+image_model = "llama3.1:8b"
 vision_model = "qwen3-vl:8b"
-seo_model = "qwen3:8b"
+seo_model = "qwen2.5:7b"
+
+filter_temperature = 0.0
+resume_temperature = 0.2
+control_temperature = 0.0
+script_temperature = 0.5
+script_control_temperature = 0.1
+image_temperature = 0.6
+vision_temperature = 0.0
+seo_temperature = 0.3
 
 # ---------------------------------------------------------------------------
 # Filter Agent
@@ -211,7 +220,7 @@ def filter_agent(news: list) -> list:
         "Descarta duplicados según el criterio de exclusión definido."
     )
 
-    result = run_agent(system, prompt, model, FilteredIndex, temperature=0, num_ctx=6144)
+    result = run_agent(system, prompt, model, FilteredIndex, temperature=filter_temperature, num_ctx=6144)
 
     news_return = []
     seen_ids = set()
@@ -274,7 +283,7 @@ def resume_agent(news: list) -> list:
                 "3) qué hay que vigilar a futuro. "
                 "Texto plano estricto. Cero markdown, cero viñetas."
             )
-            i['resume'] = run_agent(system, prompt, model, num_ctx= 4608, temperature=0.3)
+            i['resume'] = run_agent(system, prompt, model, num_ctx= 4608, temperature=resume_temperature)
 
         if article and accepted == False:
             prompt = (
@@ -287,7 +296,7 @@ def resume_agent(news: list) -> list:
                 "un solo párrafo de 3-4 oraciones en texto plano, sin markdown. "
                 "Asegúrate de incluir: qué ocurrió, por qué importa y qué vigilar."
             )
-            i['resume'] = run_agent(system, prompt, model=model)
+            i['resume'] = run_agent(system, prompt, model=model, temperature=resume_temperature)
             i['control_reason'] = None
             i['accepted'] = None
 
@@ -336,7 +345,7 @@ def control_agent(news: list) -> list:
                 "Si apruebas, reason debe ser null o vacío. "
                 "Si rechazas, escribe en 'reason' UNA instrucción directa de cómo solucionarlo (ej: 'Quita los asteriscos de negrita' o 'El dato del 5% no aparece en el texto')."
             )
-            result = run_agent(system, prompt, model, QualityCheck, num_ctx= 4096)
+            result = run_agent(system, prompt, model, QualityCheck, num_ctx= 4096, temperature=control_temperature)
             i['accepted'] = result.accepted
             i['control_reason'] = result.reason
 
@@ -427,7 +436,7 @@ def script_agent_2(news: list) -> dict:
 
         f"Noticias disponibles:\n{headlines}"
     )
-    intro_text = run_agent(system, intro_prompt, model)
+    intro_text = run_agent(system, intro_prompt, model, temperature=0)
 
     script_estructura["sections"].append({
         "type": "intro",
@@ -470,7 +479,7 @@ def script_agent_2(news: list) -> dict:
             "Todos los números deben escribirse con palabras.\n"
             "Longitud aproximada: entre noventa y ciento cuarenta palabras."
         )
-        block_text = run_agent(system, block_prompt, model)
+        block_text = run_agent(system, block_prompt, model, temperature=script_temperature)
 
         script_estructura["sections"].append({
             "type": f"news_{idx + 1}",
@@ -507,7 +516,7 @@ def script_agent_2(news: list) -> dict:
                 "Mas adelante corto por codigo a 18 palabras"
             )
 
-            transition_text = run_agent(system, transition_prompt, model)
+            transition_text = run_agent(system, transition_prompt, model, temperature=script_temperature)
 
             words = transition_text.split()
             if len(words) > 18:
@@ -530,7 +539,7 @@ def script_agent_2(news: list) -> dict:
         "Mantén un tono cercano y profesional.\n"
         "Máximo cuatro líneas."
     )
-    outro_text = run_agent(system, outro_prompt, model)
+    outro_text = run_agent(system, outro_prompt, model, temperature=script_temperature)
 
     script_estructura["sections"].append({
         "type": "outro",
@@ -656,7 +665,7 @@ def script_control_2(news: list, script_dict: dict) -> dict:
 
         try:
             # Usamos el esquema Pydantic para forzar salida estructurada limpia
-            result = run_agent(system, prompt, model, CorrectedSection)
+            result = run_agent(system, prompt, model, CorrectedSection, temperature=script_control_temperature)
             section["text"] = result.text.strip()
         except Exception as e:
             print(f"  [!] Falló la corrección de la sección {section['type']}: {e}")
@@ -717,12 +726,7 @@ def script_control_3(script_dict: dict) -> dict:
     No reescribas frases simplemente porque prefieras otra forma de escribir.
     """
 
-        result = run_agent(
-            BASE_SYSTEM,
-            prompt,
-            model,
-            CorrectedSection
-        )
+        result = run_agent(system=BASE_SYSTEM, prompt=prompt, model=script_control_model, schema=CorrectedSection, temperature=script_control_temperature, num_ctx=4096)
 
         return result.text.strip()
 
@@ -739,7 +743,8 @@ def script_control_3(script_dict: dict) -> dict:
     - no explicar noticias
     - no contener spoilers
     - solo presentar titulares
-
+    - decir al acabar "Bienvenidos a Macro Diario."
+    
     La fecha correcta es:
 
     {today}
@@ -1016,7 +1021,7 @@ def image_agent_v7(script_dict: dict) -> dict:
                     )
 
                     try:
-                        result = run_agent(system, prompt, model, ImageQueriesList, temperature=0.3)
+                        result = run_agent(system, prompt, model, ImageQueriesList, temperature=image_temperature)
                         raw_queries = result.queries[:N]
                     except Exception as e:
                         print(f"  [!] Query generation failed: {e}")
@@ -2299,9 +2304,9 @@ def seo_agent(script_dict: dict) -> dict:
     result = run_agent(
         system=system,
         prompt=prompt,
-        model=model,
+        model=seo_model,
         schema=SEOFullMetadata,
-        temperature=0.2,)
+        temperature=seo_temperature,)
 
     # ============================================
     # Limpieza
@@ -2421,7 +2426,7 @@ def seo_agent_v2(script_dict: dict):
     del vídeo y el comportamiento de los usuarios para comprender y distribuir
     el contenido.
 
-    El título debe ser claro, específico y atractivo.
+    El título debe ser claro, específico, atractivo y en castellano.
 
     La descripción debe explicar naturalmente el contenido del vídeo e incluir
     las principales entidades y conceptos de la noticia sin parecer escrita
@@ -2430,11 +2435,11 @@ def seo_agent_v2(script_dict: dict):
     YOUTUBE SHORTS:
 
     El título debe identificar rápidamente el tema principal del vídeo.
-    Prioriza reconocimiento inmediato y capacidad de descubrimiento.
+    Prioriza reconocimiento inmediato, capacidad de descubrimiento y estar en castellano.
 
     TIKTOK:
 
-    El texto debe ser más directo y natural.
+    El texto debe ser más directo y natural y en castellano.
 
     Prioriza términos que permitan identificar rápidamente el tema del vídeo
     y hashtags estrechamente relacionados con la noticia.
@@ -2484,8 +2489,6 @@ def seo_agent_v2(script_dict: dict):
     - bolsa
     - inversión
     - macroeconomía
-    - tecnología
-    - inteligencia artificial
 
     No elijas necesariamente la noticia más llamativa.
 
@@ -2538,6 +2541,7 @@ def seo_agent_v2(script_dict: dict):
     - No debe mencionar una noticia secundaria.
     - No utilices emojis.
     - No utilices comillas.
+    - Debe estar en castellano
 
     IMPORTANTE:
 
@@ -2547,42 +2551,33 @@ def seo_agent_v2(script_dict: dict):
     PASO 4 — DESCRIPCIÓN
     ==================================================
 
-    Genera una descripción optimizada para YouTube.
+    Genera una descripción completa y optimizada para YouTube que abarque TODO el noticiero.
 
-    La descripción debe:
-
-    1. Comenzar explicando directamente la noticia protagonista.
-    2. Incluir naturalmente la keyword principal.
-    3. Incluir las principales entidades relacionadas.
-    4. Explicar brevemente qué ocurrió.
-    5. Explicar por qué importa para mercados o inversores.
-    6. Mencionar brevemente las demás noticias del episodio.
-    7. Incluir una llamada a suscribirse a Macro Diario.
-    8. Mantener lenguaje natural y periodístico.
-
-    No hagas una lista artificial de keywords.
-
-    No utilices hashtags dentro de la descripción.
-
+    Estructura requerida:
+    1. GANCHO Y TEMA PRINCIPAL: Comienza sintetizando el panorama global del día y destacando la noticia protagonista (incluyendo su keyword natural).
+    2. DESGLOSE DEL NOTICIERO: Resume brevemente el resto de noticias incluidas en el episodio, dando contexto de por qué importan para el mercado o los inversores. Debe sentirse como un menú/resumen del programa completo.
+    3. POR QUÉ IMPORTA: Una frase final que conecte todo el bloque de noticias con el impacto macro/financiero global.
+    4. LLAMADA A LA ACCIÓN (CTA): Una invitación natural a suscribirse a Macro Diario para no perderse el análisis diario.
+    
+    REGLAS:
+    - Mantener tono periodístico, natural y fluido.
+    - No hacer listas artificiales de palabras clave.
+    - No incluir hashtags dentro del texto de la descripción.
+    
     ==================================================
-    PASO 5 — HASHTAGS
+    PASO 5 — HASHTAGS DEL NOTICIERO
     ==================================================
-
-    Genera entre 5 y 8 hashtags.
-
-    Deben combinar:
-    - tema principal
-    - entidad principal
-    - sector
-    - contexto económico
-
-    Todos deben estar directamente relacionados con las noticias.
-
-    Evita hashtags genéricos como:
-    #viral
-    #fyp
-    #trending
-    #parati
+    
+    Genera entre 6 y 10 hashtags que representen el CONJUNTO del episodio.
+    
+    Deben cubrir:
+    - La noticia protagonista y su entidad principal.
+    - Las demás noticias secundarias o sectores clave mencionados en el episodio.
+    - Contexto macroeconómico o de mercado general (ej: #Inversion, #Mercados, #Bolsa).
+    
+    REGLAS:
+    - Todos deben estar directamente relacionados con el contenido del día.
+    - Cero hashtags genéricos (evitar #viral, #fyp, #trending, #parati).
 
     ==================================================
 
@@ -2598,7 +2593,7 @@ def seo_agent_v2(script_dict: dict):
     
     """
 
-    long_video = run_agent(system, long_video_prompt, model, EpisodeSEO ,temperature=0.2)
+    long_video = run_agent(system=system, prompt=long_video_prompt, model= seo_model, schema=EpisodeSEO ,temperature=seo_temperature)
     full_seo_data['episode'] = long_video.model_dump()
 
     #-----------------------------------------------------------------------------------
@@ -2656,6 +2651,7 @@ def seo_agent_v2(script_dict: dict):
         - No uses emojis.
         - No uses comillas.
         - No escribas todo en mayúsculas.
+        - Debe estar en castellano.
 
         Evita títulos genéricos como:
 
@@ -2679,6 +2675,7 @@ def seo_agent_v2(script_dict: dict):
         - explicar por qué importa
         - ser fácil de leer
         - no repetir keywords artificialmente
+        - ser corta
 
         Termina con una llamada breve a seguir Macro Diario.
 
@@ -2718,7 +2715,7 @@ def seo_agent_v2(script_dict: dict):
         }}
         """
 
-        short_video = run_agent(system, short_prompt, model, ShortSEO, temperature=0.2)
+        short_video = run_agent(system=system, prompt=short_prompt, model=seo_model, schema=ShortSEO, temperature=seo_temperature)
         shorts_data.append(short_video.model_dump())
 
         tik_tok_prompt = f"""
@@ -2758,6 +2755,7 @@ def seo_agent_v2(script_dict: dict):
         - No utilices clickbait engañoso.
         - No uses emojis.
         - No uses comillas.
+        - Debe estar en castellano.
 
         ==================================================
         HASHTAGS
@@ -2800,7 +2798,7 @@ def seo_agent_v2(script_dict: dict):
         }}
         """
 
-        tik_tok_video = run_agent(system, tik_tok_prompt, model, TiktokSEO, temperature=0.2)
+        tik_tok_video = run_agent(system=system, prompt=tik_tok_prompt, model=seo_model, schema=TiktokSEO, temperature=seo_temperature)
         tik_tok_data.append(tik_tok_video.model_dump())
     full_seo_data['shorts'] = shorts_data
     full_seo_data['tiktok'] = tik_tok_data
