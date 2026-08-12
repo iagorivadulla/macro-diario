@@ -2,6 +2,7 @@ import os
 import time
 import json
 from pathlib import Path
+from datetime import datetime, timedelta
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
@@ -93,7 +94,7 @@ def upload_youtube_long(video_path, title, description):
     time.sleep(10)
     driver.quit()
 
-def upload_youtube_short(video_path, title, description, long_title):
+def upload_youtube_short(video_path, title, description, long_title, date, last_time):
     # load options
     # In cmd uses "C:\Program Files\Google\Chrome\Application\chrome.exe" --user-data-dir="C:\ChromeSelenium"
     # open chrome sesion and select youtube channel, now seems to work
@@ -176,13 +177,29 @@ def upload_youtube_short(video_path, title, description, long_title):
     driver.implicitly_wait(15)
 
     # click public button to publish the video now
-    publico = wait.until(
-        EC.element_to_be_clickable((By.XPATH, '//*[@id="privacy-radios"]/tp-yt-paper-radio-button[3]')))
-    publico.click()
-    driver.implicitly_wait(15)
+    #publico = wait.until(
+    #    EC.element_to_be_clickable((By.XPATH, '//*[@id="privacy-radios"]/tp-yt-paper-radio-button[3]')))
+    #publico.click()
+    #driver.implicitly_wait(15)
+
+    program = wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="second-container-expand-button"]')))
+    program.click()
+
+    calendario = wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="datepicker-trigger"]/ytcp-dropdown-trigger/div/div[3]')))
+    calendario.click()
+
+    fecha = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="input-2"]/input')))
+    fecha.send_keys(Keys.CONTROL, "a")
+    fecha.send_keys(date)
+    fecha.send_keys(Keys.ENTER)
+
+    hora = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="input-1"]/input')))
+    hora.send_keys(Keys.CONTROL, "a")
+    hora.send_keys(last_time)
+    hora.send_keys(Keys.ENTER)
 
     # wait for 3 minutes to yt test our video
-    for i in range(180, 0, -1):
+    for i in range(60, 0, -1):
         print(f"Esperando {i} segundos hasta publicar", flush=True)
         time.sleep(1)
 
@@ -190,7 +207,7 @@ def upload_youtube_short(video_path, title, description, long_title):
     publish = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="done-button"]/ytcp-button-shape/button')))
     publish.click()
 
-    time.sleep(15)
+    time.sleep(10)
     driver.quit()
 
 def upload_tiktok(video_path, description):
@@ -257,21 +274,32 @@ def publish(seo_dict: json):
     VIDEO_PATH = r"C:\Users\usuario\Desktop\Python\Macro News\video\episode.mp4"
 
     #uploads all the info
-    upload_youtube_long(VIDEO_PATH, long_title, long_description_hashtags)
+    #upload_youtube_long(VIDEO_PATH, long_title, long_description_hashtags)
 
     #now uploads the shorts
     SHORTS_PATH = r"C:\Users\usuario\Desktop\Python\Macro News\video\shorts"
 
+    date = datetime.now()
+
+    meses = ["ene", "feb", "mar", "abr", "may", "jun",
+             "jul", "ago", "sep", "oct", "nov", "dic"]
+
+    date = f"{date.day} {meses[date.month - 1]} {date.year}"
+    last_time = datetime.strptime("12:00", "%H:%M")
+
     print("[Publishing] Starting youtube short videos upload..")
     #do this once for every short in youtube
     for i, file in enumerate(os.listdir(SHORTS_PATH)): #get all names and index
+        time_str = last_time.strftime("%H:%M")
         path = os.path.join(SHORTS_PATH, file)
         title = seo['shorts'][i]['title']
         description = seo['shorts'][i]['description']
         hashtags = " ".join(seo['shorts'][i]['hashtags'])
         description_hashtags = description + '\n\n' + hashtags
 
-        upload_youtube_short(path, title, description_hashtags, long_title)
+        upload_youtube_short(path, title, description_hashtags, long_title, date, time_str)
+
+        last_time += timedelta(hours=2)
 
     print("[Publishing] Starting tik tok short videos upload..")
     #now every short to tik tok
@@ -281,7 +309,7 @@ def publish(seo_dict: json):
         hashtags = " ".join(seo['tiktok'][i]['hashtags'])
         description_hashtags = title + '\n\n' + hashtags
 
-        upload_tiktok(path, description_hashtags)
+        #upload_tiktok(path, description_hashtags)
 
 
 
