@@ -7,7 +7,7 @@ from datetime import datetime
 from pathlib import Path
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
-from src.agents import broadcaster_kokoro
+from src.agents import broadcaster
 
 # ---------------------------------------------------------------------------
 # Configuración
@@ -454,7 +454,7 @@ def crear_shorts(script_dict: dict, ffmpeg_path: Path = ROOT / "assets" / "audio
         short_audio_path = shorts_dir / f"short_{i:02d}.wav"
 
         # 2. Sintetizar el audio usando Kokoro (actualiza audio_duration en short_script)
-        broadcaster_kokoro(
+        broadcaster(
             script_dict=short_script,
             output_path=str(short_audio_path)
         )

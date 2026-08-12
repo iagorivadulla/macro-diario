@@ -7,7 +7,7 @@ from src.agents import (
     control_agent,
     script_agent_2,
     script_control_3,
-    broadcaster_kokoro,
+    broadcaster,
     image_agent_v9, image_agent_v8,
     seo_agent_v2
 )
@@ -108,7 +108,7 @@ def flow():
     # ------------------------------------------------------------------
     # 5. Create the voice path and save duration in the script
     # ------------------------------------------------------------------
-    broadcaster_kokoro(script_dict)
+    broadcaster(script_dict)
 
     # ------------------------------------------------------------------
     # 6. Saves the script
@@ -152,7 +152,7 @@ def flow():
 
     publish(SEO_DICT_PATH)
 
-
+#9:08
 
 if __name__ == "__main__":
     flow()

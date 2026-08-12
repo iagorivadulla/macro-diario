@@ -1,327 +1,177 @@
 {
   "episode": {
-    "main_news_id": 2,
-    "primary_keyword": "Alphabet Google Cloud Growth",
+    "main_news_id": 4,
+    "primary_keyword": "Mercados estadounidenses caen por alza de petróleo y caída de Nvidia",
     "secondary_keywords": [
-      "AI Infrastructure Investment",
-      "Tech Sector Expansion"
+      "Crudo Hormuz",
+      "Inversores",
+      "Fed",
+      "Inflación",
+      "Nvidia"
     ],
-    "title": "Macro Diario | 11 de agosto de 2026: Alphabet Google Cloud Growth",
-    "description": "En el día de hoy, el crecimiento del 82% en ingresos de Google Cloud de Alphabet destaca como la noticia más relevante para inversores y el sector tecnológico. Este avance refuerza la estrategia de inversión en inteligencia artificial, con margen operativo que triplicó a $8.8 mil millones. Además, se analizó el impacto de la política energética estadounidense, el repunte de MercadoLibre sin noticias específicas, la evolución de la cadena de suministro de memoria, el potencial de Bitcoin y la competencia en soluciones de seguridad autónoma. Estos eventos reflejan la dinámica de inversiones en tecnología, infraestructura y mercados financieros globales. ¡Suscríbete a Macro Diario para no perder detalle del análisis diario!",
+    "title": "Macro Diario | 12 de agosto de 2026: Mercados caen por alza del petróleo y caída de Nvidia",
+    "description": "El mercado estadounidense abrió en baja el lunes con el S&P 500 en -0,1%, el Dow Jones en -0,1% y el Nasdaq en -0,3%, impulsado por el alza del crudo y la caída del 3% de Nvidia tras un reporte sobre financiación de IA. La tensión geopolítica en el Estrecho de Hormuz y la incertidumbre sobre su reabre presionan los precios globales, mientras que la Fed muestra división sobre ajustes de tipos. En el resto del noticiero: los precios del crudo alcanzan máximos de una semana tras ataques a infraestructura saudita, Apple enfrenta presión por costos de memoria y Zeta Global se posiciona como próximo candidato en tecnología. Todos estos factores reflejan la complejidad del entorno macroeconómico y su impacto en inversiones. ¡Suscríbete a Macro Diario para no perder detalle del análisis diario!",
     "hashtags": [
-      "#Alphabet",
-      "#GoogleCloud",
-      "#AIInfrastructure",
-      "#TechSector",
-      "#MercadosFinancieros",
-      "#Inversion",
-      "#EconomiaGlobal",
-      "#Bitcoin",
-      "#InnovacionTecnologica"
+      "#Mercados",
+      "#Inversión",
+      "#Bolsa",
+      "#Inflación",
+      "#Nvidia",
+      "#CrudoHormuz",
+      "#Fed",
+      "#MacroEconomía",
+      "#Tecnología",
+      "#Inversores"
     ]
   },
   "shorts": [
     {
       "news_id": 1,
-      "primary_keyword": "ServiceNow seguridad autónoma",
+      "primary_keyword": "precios del crudo suben",
       "secondary_keywords": [
-        "Shift Zero",
-        "contratos de $1.000 millones",
-        "SOC AI"
+        "Estrecho de Ormuz",
+        "tensión geopolítica",
+        "ataques a refinerías sauditas"
       ],
-      "title": "Macro Diario | ServiceNow lanza seguridad autónoma con contratos de $1.000 millones",
-      "description": "ServiceNow (NYSE:NOW) presentó seis soluciones de seguridad autónoma bajo Shift Zero, alcanzando contratos de $1.000 millones. Su estrategia de integración de herramientas de seguridad podría transformar el mercado, pero enfrenta desafíos contra gigantes establecidos. ¿Cómo impactará la implementación de SOC AI y monitoreo continuo en diciembre? ¡Sigue Macro Diario para más análisis en economía y tecnología!",
+      "title": "Macro Diario | Precios del crudo suben por incertidumbre en el Estrecho de Ormuz",
+      "description": "Los precios del crudo alcanzan máximos de una semana tras ataques a buques y refinerías en el Estrecho de Ormuz. La tensión geopolítica y cuellos de botella en la oferta global presionan los mercados. ¿Qué impacto tendrá en la economía global?  Sigue Macro Diario.",
       "hashtags": [
-        "#ServiceNow",
-        "#seguridadautónoma",
-        "#ShiftZero",
-        "#contratosde1000millones",
-        "#SOCAI",
-        "#mercadosfinancieros"
+        "#preciosdelcrudo",
+        "#EstrechoDeOrmuz",
+        "#mercadosenergéticos",
+        "#tensióngeopolítica"
       ]
     },
     {
       "news_id": 2,
-      "primary_keyword": "Google Cloud crece un 82%",
+      "primary_keyword": "Apple (AAPL) Downgraded",
       "secondary_keywords": [
-        "Alphabet",
-        "AI",
-        "infraestructura",
-        "mercados tecnológicos",
-        "invertir en tecnología"
+        "Jefferies downgrade",
+        "iPhone pricing",
+        "memory costs"
       ],
-      "title": "Macro Diario | Google Cloud crece un 82%: ¿Por qué justifica la inversión de Alphabet?",
-      "description": "Alphabet reportó un crecimiento del 82% en ingresos de Google Cloud, alcanzando $24.8 mil millones en el segundo trimestre. La ganancia operativa triplicó a $8.8 mil millones, con un margen que pasó del 20.6% al 35.5%. Este avance refuerza la estrategia de inversión en infraestructura de inteligencia artificial. ¿Por qué este crecimiento justifica la apuesta de Alphabet? ¡Sigue a Macro Diario para más análisis!",
+      "title": "Macro Diario | Apple (AAPL) Downgraded tras reducir precio a $263,66 por costos de memoria",
+      "description": "Jefferies rebajó Apple a Underperform y ajustó su objetivo a $263,66 tras cancelar el iPhone de vidrio puro. La decisión refleja presión por costos de memoria y dependencia de innovaciones como los iPhones plegables. ¿Cómo afecta esto a los márgenes de la empresa? ¡Sigue Macro Diario para más análisis!",
       "hashtags": [
-        "#GoogleCloud",
-        "#Alphabet",
-        "#AI",
-        "#infraestructura",
-        "#mercados tecnológicos",
-        "#invertir en tecnología"
+        "#AppleDowngrade",
+        "#Jefferies",
+        "#iPhonePricing",
+        "#MemoryCosts",
+        "#Economía",
+        "#Mercados"
       ]
     },
     {
       "news_id": 3,
-      "primary_keyword": "Apple iPhone costos memoria China",
+      "primary_keyword": "Zeta Global Holdings Corp",
       "secondary_keywords": [
-        "ChangXin Memory Technologies",
-        "SK Hynix",
-        "Samsung",
-        "mercados tecnológicos"
+        "Nvidia",
+        "OpenAI",
+        "Palantir",
+        "inteligencia empresarial"
       ],
-      "title": "Macro Diario | Apple rechaza precios de CXMT en China y suben costos iPhone",
-      "description": "Apple rechazó las propuestas de precios de ChangXin Memory Technologies (CXMT) en China, lo que eleva los costos de los iPhone. Este cambio beneficia a Micron y a la industria estadounidense, pero aumenta los precios para consumidores. #MacroDiario",
+      "title": "Macro Diario | Zeta Global (ZETA) se convierte en la próxima gran apuesta tras Nvidia",
+      "description": "Los inversores en Reddit destacan a Zeta Global Holdings Corp (ZETA) como posible sucesor de Nvidia, tras su crecimiento explosivo y alianzas con OpenAI y Palantir. Sin embargo, se advierte sobre su dependencia de gastos políticos y la adquisición de Marigold. ¿Seguirá subiendo el precio? #MacroDiario",
       "hashtags": [
-        "#AppleiPhoneCostos",
-        "#ChangXinMemory",
-        "#SKHynix",
-        "#Samsung",
-        "#MercadosTecnológicos",
-        "#EconomíaChina"
+        "#ZetaGlobal",
+        "#Nvidia",
+        "#OpenAI",
+        "#Palantir",
+        "#MercadosFinancieros",
+        "#InteligenciaEmpresarial"
       ]
     },
     {
       "news_id": 4,
-      "primary_keyword": "Bitcoin precio hoy",
+      "primary_keyword": "Nvidia cae 3% tras reporte de $500B en IA",
       "secondary_keywords": [
-        "Ethereum precio",
-        "mercados criptomonedas",
-        "Fed tipos de interés",
-        "inflación datos"
+        "S&P 500 cae 0.1%",
+        "Dow Jones baja 0.1%",
+        "Fed dividida sobre tipos",
+        "precios del petróleo suben"
       ],
-      "title": "Macro Diario | Bitcoin precio hoy supera $65,000 por cuarto día",
-      "description": "El precio de Bitcoin alcanza $64,935.75 hoy, superando por cuarto día la marca de $65,000. Ethereum cierra en $1,913.13. La subida refleja la reacción a datos de empleo y expectativas sobre política monetaria. ¡Sigue Macro Diario para más análisis!",
+      "title": "Macro Diario | Nvidia cae 3% tras reporte de $500B en IA: Mercados y petróleo suben",
+      "description": "Los mercados estadounidenses bajan hoy con el S&P 500 en -0.1% y el Nasdaq en -0.3%, mientras que Nvidia cae 3% tras el anuncio del paquete de $500B para IA. Los precios del petróleo suben y la Fed sigue dividida sobre ajustes de tipos. ¿Qué implica para la economía? ¡Sigue Macro Diario para más análisis!",
       "hashtags": [
-        "#BitcoinPrecioHoy",
-        "#EthereumPrecio",
-        "#Criptomonedas",
-        "#FedTiposInterés",
-        "#InflaciónDatos"
-      ]
-    },
-    {
-      "news_id": 5,
-      "primary_keyword": "uranium funds",
-      "secondary_keywords": [
-        "DOE funding",
-        "nuclear reactors",
-        "ETFs URA",
-        "NLR",
-        "URNM"
-      ],
-      "title": "Macro Diario | DOE Financia Reactores, Uranium Funds Ignoran el Apoyo",
-      "description": "El DOE comprometió 17.500 millones para reactores de Westinghouse y la cadena de uranio, pero ETFs como URA y NLR subieron solo 0.56% y 8.31%. Los fondos no enfocan su cartera en uranio, sino en utilities. Alternativas como URNM mostraron 15% anual. ¿Cómo ajustan sus carteras los fondos? Sigue Macro Diario.",
-      "hashtags": [
-        "#uraniumfunds",
-        "#DOE",
-        "#nuclearreactors",
-        "#ETFs",
-        "#URNM",
-        "#mercadosfinancieros"
-      ]
-    },
-    {
-      "news_id": 6,
-      "primary_keyword": "centros de datos",
-      "secondary_keywords": [
-        "inteligencia artificial",
-        "Donald Trump",
-        "Texas",
-        "política fiscal"
-      ],
-      "title": "Macro Diario | Trump: Centros de datos podrían superar al petróleo",
-      "description": "Donald Trump afirmó que los centros de datos podrían superar a la industria del petróleo en tamaño económico, instando a los estados a reducir impuestos y acelerar el crecimiento de la inteligencia artificial. Criticó a Texas por oponerse a su desarrollo. Importante para la competencia tecnológica con China y la estrategia fiscal. ¡Sigue Macro Diario para más análisis!",
-      "hashtags": [
-        "#centrosdedatos",
-        "#inteligenciaartificial",
-        "#DonaldTrump",
-        "#economía",
-        "#tecnología",
-        "#políticafiscal"
-      ]
-    },
-    {
-      "news_id": 7,
-      "primary_keyword": "Arista Networks vs Arm",
-      "secondary_keywords": [
-        "revenue growth",
-        "artificial intelligence companies",
-        "data center solutions",
-        "fraud investigations"
-      ],
-      "title": "Macro Diario | Arista Networks vs Arm: Crecimiento en AI y riesgos legales",
-      "description": "Arista Networks y Arm reportaron ingresos de $3 mil millones y $1.3 mil millones en Q2 2026. Arista muestra crecimiento sólido en inteligencia artificial, mientras que Arm enfrenta investigaciones por fraude. ¿Cuál es el futuro de estas empresas en el sector AI? Sigue a Macro Diario para más análisis.",
-      "hashtags": [
-        "#AristaNetworks",
-        "#Arm",
-        "#CrecimientoAI",
-        "#DataCenters",
-        "#FraudeInversiones",
-        "#MercadosTech"
-      ]
-    },
-    {
-      "news_id": 8,
-      "primary_keyword": "MercadoLibre stock",
-      "secondary_keywords": [
-        "MercadoLibre segundo trimestre",
-        "MercadoLibre rentabilidad"
-      ],
-      "title": "Macro Diario | MercadoLibre stock sube 11% por segundo trimestre",
-      "description": "MercadoLibre (MELI) subió 11% en julio por expectativa de su informe trimestral de agosto. A pesar de una caída del 30% desde su máximo, el segundo trimestre mostró ingresos en 50% y una estrategia de inversión a largo plazo. ¿Qué implica para su rentabilidad? Sigue a Macro Diario para más análisis.",
-      "hashtags": [
-        "#MercadoLibreStock",
-        "#MercadoLibreSegundoTrimestre",
-        "#MercadoLibreRentabilidad",
-        "#MercadosFinancieros",
-        "#EconomíaGlobal",
-        "#BolsaDeValores"
+        "#NvidiaCae3%",
+        "#MercadosEstadounidenses",
+        "#FedDividida",
+        "#PetróleoSube",
+        "#IAInfraestructura",
+        "#MacroDiario"
       ]
     }
   ],
   "tiktok": [
     {
       "news_id": 1,
-      "primary_keyword": "ServiceNow",
+      "primary_keyword": "Precios del crudo",
       "secondary_keywords": [
-        "seguridad autónoma",
-        "Shift Zero",
-        "crecimiento empresarial",
-        "automatización workflows"
+        "Estrecho de Ormuz",
+        "Oil Prices",
+        "Geopolítica"
       ],
-      "title": "ServiceNow lanza seguridad autónoma para impulsar su crecimiento",
+      "title": "Precios del crudo DISPARAN: Incertidumbre en el Estrecho de Ormuz",
       "hashtags": [
-        "#ServiceNow",
-        "#seguridadAutónoma",
-        "#ShiftZero",
-        "#crecimientoEmpresarial",
-        "#automatizaciónWorkflows",
-        "#innovaciónTech"
+        "#PreciosDelCrudo",
+        "#EstrechoDeOrmuz",
+        "#Geopolitica",
+        "#MercadosPetroleros"
       ]
     },
     {
       "news_id": 2,
-      "primary_keyword": "Google Cloud",
+      "primary_keyword": "Apple (AAPL)",
       "secondary_keywords": [
-        "Sundar Pichai",
-        "infraestructura IA",
-        "Alphabet",
-        "cloud computing"
+        "iPhone pricing",
+        "memory costs",
+        "stock downgrade",
+        "Jefferies"
       ],
-      "title": "Alphabet's Google Cloud crece un 82%: ¿Por qué esta estrategia de IA es clave?",
+      "title": "Apple (AAPL) Aplasta tras anular iPhone 2027 por costos de memoria",
       "hashtags": [
-        "#GoogleCloud",
-        "#Alphabet",
-        "#IAInfraestructura",
-        "#MercadosFinancieros",
-        "#InversiónTech",
-        "#CloudComputing"
+        "#AppleAAPL",
+        "#iPhonePricing",
+        "#MemoryCosts",
+        "#StockDowngrade",
+        "#Jefferies",
+        "#Macroeconomía"
       ]
     },
     {
       "news_id": 3,
-      "primary_keyword": "Apple iPhone precios",
+      "primary_keyword": "Zeta Global",
       "secondary_keywords": [
-        "ChangXin Memory Technologies",
-        "memoria chip",
-        "sector tecnológico"
+        "Nvidia",
+        "Reddit",
+        "inteligencia artificial"
       ],
-      "title": "Apple rechaza precios de ChangXin, ¿subirán los iPhone?",
+      "title": "Zeta Global lidera la revolución de la IA: ¿Siguiente en la brecha de Nvidia?",
       "hashtags": [
-        "#AppleiPhonePrecios",
-        "#ChangXinMemory",
-        "#MemoriaChip",
-        "#SectorTecnológico",
-        "#EconomíaTech"
+        "#ZetaGlobal",
+        "#Nvidia",
+        "#InteligenciaArtificial",
+        "#Reddit",
+        "#MercadosFinancieros",
+        "#Tecnología"
       ]
     },
     {
       "news_id": 4,
-      "primary_keyword": "Bitcoin",
+      "primary_keyword": "Nvidia",
       "secondary_keywords": [
-        "Ethereum",
+        "mercados estadounidenses",
+        "precios petróleo",
         "Fed",
-        "inflación",
-        "criptomonedas"
+        "inflación"
       ],
-      "title": "Bitcoin rompe $65k por cuarto día consecutivo | 10/08/2026",
+      "title": "Nvidia Aplasta 3% tras reporte de $500B en IA",
       "hashtags": [
-        "#Bitcoin",
-        "#Criptomonedas",
+        "#Nvidia",
+        "#MercadosEstadounidenses",
+        "#Petróleo",
         "#Fed",
-        "#inflación",
-        "#Ethereum"
-      ]
-    },
-    {
-      "news_id": 5,
-      "primary_keyword": "reactores Westinghouse",
-      "secondary_keywords": [
-        "ETF Uranio",
-        "Inversión nuclear",
-        "DOE",
-        "cadena suministro uranio"
-      ],
-      "title": "DOE invierte $17.5B en reactores Westinghouse: ¿Por qué los ETFs de uranio no reaccionaron?",
-      "hashtags": [
-        "#reactoresWestinghouse",
-        "#ETFUranio",
-        "#InversionNuclear",
-        "#DOE",
-        "#CadenaSuministroUranio"
-      ]
-    },
-    {
-      "news_id": 6,
-      "primary_keyword": "Data Centers AI",
-      "secondary_keywords": [
-        "AI Growth",
-        "State Taxes",
-        "Texas Tech",
-        "China Tech"
-      ],
-      "title": "Trump: Data Centers podrían superar al petróleo en AI",
-      "hashtags": [
-        "#DataCentersAI",
-        "#TrumpTech",
-        "#AICompetencia",
-        "#ChinaTech",
-        "#TechEconomy"
-      ]
-    },
-    {
-      "news_id": 7,
-      "primary_keyword": "Arista Networks vs Arm",
-      "secondary_keywords": [
-        "Revenue Growth AI",
-        "Arista Networks",
-        "Arm Legal Issues",
-        "AI Companies"
-      ],
-      "title": "Arista Networks vs Arm: Crecimiento vs. Investigaciones en AI",
-      "hashtags": [
-        "#AristaNetworks",
-        "#ArmLegalIssues",
-        "#AICompanies",
-        "#RevenueGrowth"
-      ]
-    },
-    {
-      "news_id": 8,
-      "primary_keyword": "MercadoLibre stock",
-      "secondary_keywords": [
-        "segundo trimestre MercadoLibre",
-        "margen de rentabilidad",
-        "expansión MercadoLibre",
-        "ingresos MercadoLibre"
-      ],
-      "title": "MercadoLibre acción sube 11% ¿por qué?",
-      "hashtags": [
-        "#MercadoLibreStock",
-        "#MercadoLibreSegundoTrimestre",
-        "#MercadoLibreMargen",
-        "#MercadoLibreExpansión"
+        "#Inflación"
       ]
     }
   ]

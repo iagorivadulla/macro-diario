@@ -20,6 +20,9 @@ import io
 import re
 import subprocess
 import warnings
+from omnivoice import OmniVoice
+import torch
+import soundfile as sf
 
 # ----------------------------------
 # Handel Warnings
@@ -150,14 +153,14 @@ script_control_model = "llama3.1:8b-instruct-q4_K_M"
 image_model = "qwen2.5:7b-instruct-q4_K_M"
 vision_model = "llava:7b"
 '''
-filter_model = "deepseek-r1:8b"
-resume_model = "qwen2.5:7b"
-control_model = "deepseek-r1:8b"
-script_model = "llama3.1:8b"
-script_control_model = "deepseek-r1:8b"
-image_model = "llama3.1:8b"
+filter_model = "qwen3:8b"
+resume_model = "qwen3:8b"
+control_model = "qwen3:8b"
+script_model = "qwen3:8b"
+script_control_model = "qwen3:8b"
+image_model = "qwen3:8b"
 vision_model = "qwen3-vl:8b"
-seo_model = "qwen2.5:7b"
+seo_model = "qwen3:8b"
 
 filter_temperature = 0.0
 resume_temperature = 0.2
@@ -212,7 +215,7 @@ def filter_agent(news: list) -> list:
     prompt = (
 
         f"Aplica los criterios de selección a esta lista de titulares "
-        f"y elige EXACTAMENTE 10 noticias:\n\n{headlines}\n\n"
+        f"y elige EXACTAMENTE 7 noticias:\n\n{headlines}\n\n"
         "Para cada noticia seleccionada, indica:\n"
         "- 'id': El número entero entre corchetes.\n"
         "- 'headline': El texto exacto del titular.\n"
@@ -726,7 +729,7 @@ def script_control_3(script_dict: dict) -> dict:
     No reescribas frases simplemente porque prefieras otra forma de escribir.
     """
 
-        result = run_agent(system=BASE_SYSTEM, prompt=prompt, model=script_control_model, schema=CorrectedSection, temperature=script_control_temperature, num_ctx=4096)
+        result = run_agent(BASE_SYSTEM, prompt, model, CorrectedSection)
 
         return result.text.strip()
 
@@ -2335,6 +2338,207 @@ def seo_agent(script_dict: dict) -> dict:
 
     return result.model_dump()
 
+
+from pathlib import Path
+import subprocess
+
+from IPython.display import display, Audio
+def _split_sentences(text: str, max_chars: int = 180) -> list[str]:
+    """
+    Divide el texto en fragmentos respetando puntuación.
+    Kokoro tiene un límite de ~510 fonemas por llamada; con max_chars=180
+    los chunks en español quedan muy por debajo de ese límite.
+    """
+    import re
+
+    def _split_by_delimiters(src: str, limit: int) -> list[str]:
+        """Parte src en trozos <= limit chars usando comas/punto y coma como corte."""
+        parts = re.split(r'(?<=[,;])\s+', src)
+        result, current = [], ""
+        for p in parts:
+            if len(current) + len(p) + 1 <= limit:
+                current = f"{current} {p}".strip()
+            else:
+                if current:
+                    result.append(current)
+                # Si incluso la parte sola supera el límite, corte en espacio más cercano
+                while len(p) > limit:
+                    cut = p.rfind(' ', 0, limit)
+                    cut = cut if cut > 0 else limit
+                    result.append(p[:cut].strip())
+                    p = p[cut:].strip()
+                current = p
+        if current:
+            result.append(current)
+        return result
+
+    # Separar por punto, exclamación o interrogación seguido de espacio/fin
+    raw = re.split(r'(?<=[.!?])\s+', text.strip())
+    chunks, current = [], ""
+    for sentence in raw:
+        if len(current) + len(sentence) + 1 <= max_chars:
+            current = f"{current} {sentence}".strip()
+        else:
+            if current:
+                chunks.append(current)
+            current = ""
+            # Si la frase individual supera max_chars, partirla por comas/punto y coma
+            if len(sentence) > max_chars:
+                sub = _split_by_delimiters(sentence, max_chars)
+                # El último sub-trozo se convierte en current para poder fusionarse con lo siguiente
+                chunks.extend(sub[:-1])
+                current = sub[-1] if sub else ""
+            else:
+                current = sentence
+    if current:
+        chunks.append(current)
+    return [c for c in chunks if c.strip()]
+
+model = OmniVoice.from_pretrained(
+        "k2-fsa/OmniVoice",
+        device_map="cuda:0",
+        dtype=torch.float16,
+        load_asr=False
+    )
+
+def generate_omnivoice(text):
+
+    from omnivoice import VoiceClonePrompt
+
+    VOICE_PROMPT = VoiceClonePrompt.load(
+    r"C:\Users\usuario\Desktop\Python\Macro News\assets\audio\omnivoice_voice.pt")
+
+    samples = model.generate(
+        text=text,
+        language="es",
+        voice_clone_prompt=VOICE_PROMPT,
+        normalize_text=True
+    )
+
+    return samples[0], model.sampling_rate
+
+
+def broadcaster(
+        script_dict: dict,
+        output_path: str = None,
+        chunk_pause: float = 0.6,
+        section_pause: float = 1.0,
+) -> str:
+
+    import numpy as _np
+    from pathlib import Path
+    from omnivoice import OmniVoice
+    import torch
+
+
+    try:
+        import soundfile as _sf
+    except ImportError:
+        raise ImportError("Ejecuta: pip install soundfile")
+
+
+    # ─────────────────────────────────────────────────────────────────────────
+
+
+    FFMPEG = r"C:\Users\usuario\Desktop\Python\Macro News\assets\audio\ffmpeg.exe"
+
+    if output_path is None:
+        output_path = r"C:\Users\usuario\Desktop\Python\Macro News\assets\audio\output.wav"
+
+    sections = script_dict.get("sections", [])
+    print(f"[Broadcaster] Sintetizando {len(sections)} secciones")
+
+    all_samples: list = []
+    sample_rate: int | None = None
+
+    for idx_sec, section in enumerate(sections):
+        sec_type  = section.get("type", "body")
+
+
+        text = section["text"]
+        chunks = _split_sentences(text)
+        sec_samples: list = []
+
+        for idx, chunk in enumerate(chunks, 1):
+            samples, rate = generate_omnivoice(chunk)
+            if sample_rate is None:
+                sample_rate = rate
+
+            sec_samples.append(samples)
+            if idx < len(chunks):
+                # Limpiamos espacios finales por si acaso y obtenemos el último carácter
+                last_char = chunk.strip()[-1] if chunk.strip() else ""
+
+                if last_char in {'.', '!', '?', '”', '"'}:
+                    # Pausa completa para fin de frase (0.6s por defecto)
+                    current_pause = chunk_pause
+                elif last_char in {',', ';', ':'}:
+                    # Pausa mucho más corta para encadenar ideas (~0.2s)
+                    current_pause = chunk_pause * 0.35
+                else:
+                    # Si se cortó a la fuerza por el límite de caracteres sin puntuación
+                    # casi no dejamos pausa para que la voz fluya (~0.05s)
+                    current_pause = 0.05
+
+                sec_samples.append(_np.zeros(int(sample_rate * current_pause), dtype=_np.float32))
+                print(
+                    f"  {sec_type:12s} chunk {idx:>2}/{len(chunks)}  ({len(chunk)} chars) [Pausa: {current_pause:.2f}s]")
+            else:
+                print(f"  {sec_type:12s} chunk {idx:>2}/{len(chunks)}  ({len(chunk)} chars)")
+
+        if idx_sec < len(sections) - 1 and sample_rate:
+            sec_samples.append(_np.zeros(int(sample_rate * section_pause), dtype=_np.float32))
+
+        section_audio = _np.concatenate(sec_samples) if sec_samples else _np.array([], dtype=_np.float32)
+        duration_s    = float(len(section_audio) / sample_rate) if sample_rate else 0.0
+        section["audio_duration"] = duration_s
+        all_samples.append(section_audio)
+        print(f"  {'':12s} → {duration_s:.1f}s  ✓")
+
+    combined = _np.concatenate(all_samples)
+    out = Path(output_path)
+    _sf.write(str(out), combined, sample_rate)
+
+    # Audio más tipo podcast
+    processed_out = out.with_name(out.stem + "_processed.wav")
+
+    '''subprocess.run([
+        str(FFMPEG), "-y", "-i", str(out),
+        "-af",
+        "highpass=f=80,"
+        "acompressor=threshold=-20dB:ratio=2.5:attack=10:release=200:makeup=2,"
+        "anequalizer=c0 f=500 w=200 g=-2 t=0|c0 f=3000 w=1000 g=2.5 t=0,"
+        "lowpass=f=16000,"
+        "loudnorm=I=-16:TP=-1.5:LRA=11,"
+        "aresample=24000",
+        "-acodec", "pcm_s16le",
+        "-ar", "24000",
+        "-ac", "1",
+        str(processed_out)
+    ], check=True)'''
+
+    subprocess.run([
+        str(FFMPEG), "-y", "-i", str(out),
+        "-af",
+        "highpass=f=80,"
+        "acompressor=threshold=-16dB:ratio=1.5:attack=25:release=300:makeup=1,"
+        "loudnorm=I=-16:TP=-1.5:LRA=11,"
+        "aresample=24000",
+        "-acodec", "pcm_s16le",
+        "-ar", "24000",
+        "-ac", "1",
+        str(processed_out)
+    ], check=True)
+
+    out.unlink()  # elimina el original
+    processed_out.rename(out)
+
+    total = sum(s["audio_duration"] for s in sections)
+    print(f"[Broadcaster] ✓ Audio total: {total:.1f}s  →  {out}")
+
+    return "\n\n".join(s["text"] for s in sections)
+
+
 def seo_agent_v2(script_dict: dict):
     '''
     Genera toda la metadata SEO del episodio y de todos los Shorts
@@ -2531,7 +2735,7 @@ def seo_agent_v2(script_dict: dict):
 
     - Debe comenzar exactamente con:
       Macro Diario | {date}:
-    - Máximo 90 caracteres.
+    - Máximo 90 caracteres. Esto incluye el punto anterior "Macro Diario | {date}:
     - La keyword principal debe aparecer de forma natural.
     - Debe ser comprensible sin contexto adicional.
     - Debe despertar curiosidad legítima.
@@ -2652,14 +2856,15 @@ def seo_agent_v2(script_dict: dict):
         - No uses comillas.
         - No escribas todo en mayúsculas.
         - Debe estar en castellano.
+        
+        - Usa números: "Inversión de $2.5B en..."
+        - Usa verbos fuertes: "Explota", "Colapsa", "Dispara", "Aplasta"
+        - Genera curiosidad: "¿Por qué todos miran a Edison?"
+        - Ejemplos que FUNCIONAN:
+          ✅ "SpaceX se DESPLOMA 15% tras accidente" (vs "SpaceX enfrenta caída")
+          ✅ "Yen se dispara: ¿Fin de la incertidumbre?" (vs "Yen se fortalece")
+          ✅ "Petrobras DUPLICA ganancias en un solo día" (vs "Petrobras duplica")
 
-        Evita títulos genéricos como:
-
-        Macro Diario | Las bolsas reaccionan a las últimas noticias
-
-        Prefiere títulos específicos como:
-
-        Macro Diario | Strategy vende Bitcoin y cambia su estrategia
 
         ==================================================
         DESCRIPCIÓN
@@ -2756,6 +2961,14 @@ def seo_agent_v2(script_dict: dict):
         - No uses emojis.
         - No uses comillas.
         - Debe estar en castellano.
+        
+        - Usa números: "Inversión de $2.5B en..."
+        - Usa verbos fuertes: "Explota", "Colapsa", "Dispara", "Aplasta"
+        - Genera curiosidad: "¿Por qué todos miran a Edison?"
+        - Ejemplos que FUNCIONAN:
+          ✅ "SpaceX se DESPLOMA 15% tras accidente" (vs "SpaceX enfrenta caída")
+          ✅ "Yen se dispara: ¿Fin de la incertidumbre?" (vs "Yen se fortalece")
+          ✅ "Petrobras DUPLICA ganancias en un solo día" (vs "Petrobras duplica")
 
         ==================================================
         HASHTAGS

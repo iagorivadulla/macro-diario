@@ -1,12 +1,14 @@
 # Macro Diario — Criterios de Selección de Noticias
 
 ## Objetivo
-Seleccionar 10 noticias del día con el mayor impacto macroeconómico real. La selección debe ser reproducible: ante el mismo conjunto de titulares, siempre deben elegirse las mismas noticias.
+Seleccionar 7 noticias del día con el mayor impacto macroeconómico real. La selección debe ser reproducible: ante el mismo conjunto de titulares, siempre deben elegirse las mismas noticias.
 
 ## Criterios de selección (por orden de prioridad)
 
 ### Prioridad 1 — Incluir siempre si aparecen
 - Decisiones de tipos de interés o comunicados de bancos centrales (Fed, BCE, BoE, BoJ, BNS...)
+- Grandes empresas tecnológicas (SpaceX, Tesla, Apple, Nvidia...)
+- Inversiones en infraestructura (>$1B)
 - Datos de inflación (IPC, PCE, IPP) de economías del G7
 - Datos de empleo (nóminas no agrícolas, paro, JOLTS) de EE.UU. o zona euro
 - PIB trimestral de EE.UU., zona euro, China, Reino Unido o Japón
