@@ -963,6 +963,12 @@ def script_control_3(script_dict: dict) -> dict:
                         model
                     )
 
+                    section['short_text'] = review_news(
+                        section["short_text"],
+                        section.get("resume", ""),
+                        model
+                    )
+
                 elif section["type"].startswith("transition"):
 
                     next_news = ""
