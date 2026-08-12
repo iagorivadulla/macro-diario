@@ -201,7 +201,7 @@ def build_subtitle_timeline(script_dict: dict, fps: int) -> list:
     for section in script_dict.get("sections", []):
         duration = section.get("audio_duration", 0.0)
         sec_frames = max(1, int(round(duration * fps)))
-        texto = section.get("text", "").strip()
+        texto = section['short_text'].strip()
         lineas = _texto_a_lineas(texto) if texto else []
 
         timeline.append((cursor, cursor + sec_frames, lineas))
@@ -408,26 +408,6 @@ def producir(
 # ---------------------------------------------------------------------------
 
 def crear_shorts(script_dict: dict, ffmpeg_path: Path = ROOT / "assets" / "audio" /"ffmpeg.exe"):
-    dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
-    meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio",
-             "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
-
-    hoy = datetime.now()
-    fecha = f"{dias[hoy.weekday()]} {hoy.day} de {meses[hoy.month - 1]}"
-
-    intro = {
-        "type": "intro",
-        "title": "Intro Shorts",
-        "text": f"Bienvenidos a Macro Diario Shorts. Hoy es {fecha}.",
-        "images_paths": []
-    }
-
-    outro = {
-        "type": "outro",
-        "title": "Outro Shorts",
-        "text": "Si quieres conocer todas las noticias del día, tienes el noticiero completo en nuestro canal de YouTube. Hasta mañana.",
-        "images_paths": []
-    }
 
     news_sections = [
         s for s in script_dict.get("sections", [])
@@ -442,12 +422,12 @@ def crear_shorts(script_dict: dict, ffmpeg_path: Path = ROOT / "assets" / "audio
     for i, news in enumerate(news_sections, start=1):
         print(f"\n--- Procesando Short {i}/{len(news_sections)} ---")
 
+        short_section = deepcopy(news)
+
+        short_section["text"] = short_section["short_text"]
+
         short_script = {
-            "sections": [
-                deepcopy(intro),
-                deepcopy(news),
-                deepcopy(outro)
-            ]
+            "sections": [short_section]
         }
 
         # 1. Archivo de audio temporal/único para este short

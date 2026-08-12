@@ -482,13 +482,71 @@ def script_agent_2(news: list) -> dict:
             "Todos los números deben escribirse con palabras.\n"
             "Longitud aproximada: entre noventa y ciento cuarenta palabras."
         )
+
+        short_prompt = (
+            "Escribe el guion de un YouTube Short basado exclusivamente en la noticia proporcionada.\n\n"
+
+
+        f"Titular:\n{title}\n\n"
+        f"Resumen:\n{resume}\n\n"
+
+        "IMPORTANTE: Este texto NO debe ser una versión resumida ni una copia del bloque principal del noticiero. "
+        "Debe estar escrito desde cero y tener una estructura, ritmo y enfoque propios de un YouTube Short.\n\n"
+
+        "OBJETIVO:\n"
+        "Captar la atención durante los primeros segundos y conseguir que el espectador quiera seguir viendo el vídeo hasta el final.\n\n"
+
+        "ESTRUCTURA:\n"
+        "1. HOOK INICIAL: Empieza con una frase muy potente que genere curiosidad, sorpresa, tensión o interés inmediato. "
+        "No empieces diciendo simplemente el titular ni con fórmulas como 'Hoy...', 'Esta noticia...' o 'En esta noticia...'. "
+        "El espectador debe sentir desde la primera frase que está a punto de descubrir algo importante.\n\n"
+
+        "2. DESARROLLO: Explica rápidamente qué ha ocurrido utilizando únicamente la información del resumen. "
+        "Prioriza los datos y hechos más interesantes. Mantén frases cortas, dinámicas y fáciles de escuchar.\n\n"
+
+        "3. IMPORTANCIA: Explica por qué este hecho merece atención. "
+        "Si existen consecuencias mencionadas explícitamente en el resumen, intégralas de forma clara. "
+        "No inventes consecuencias ni contexto adicional.\n\n"
+
+        "4. CIERRE: Termina dejando una última idea que refuerce la importancia de la noticia o despierte curiosidad, "
+        "sin inventar información ni utilizar preguntas cuya respuesta no esté en el material proporcionado.\n\n"
+
+        "5. CTA FINAL: Termina exactamente con una frase equivalente a: "
+        "'Esto fue Macro Diario Shorts. El vídeo completo está en el canal de YouTube.' "
+        "Puedes adaptar ligeramente la redacción para que suene natural al ser narrada, "
+        "pero debe mencionar obligatoriamente 'Macro Diario Shorts' y que el vídeo completo está en el canal de YouTube.\n\n"
+
+        "REGLAS:\n"
+        "- CERO ALUCINACIONES. Utiliza exclusivamente la información proporcionada en el titular y resumen.\n"
+        "- No añadas nombres, cifras, empresas, cargos, fechas o consecuencias que no aparezcan en el material.\n"
+        "- No copies frases del guion principal.\n"
+        "- No repitas literalmente el titular como primera frase.\n"
+        "- No escribas encabezados ni etiquetas como 'HOOK', 'DESARROLLO' o 'CIERRE'.\n"
+        "- No escribas listas.\n"
+        "- Todos los números deben escribirse con palabras.\n"
+        "- El texto debe sonar natural al ser leído por un presentador.\n"
+        "- Utiliza un ritmo más rápido y directo que el noticiero completo.\n"
+        "- Evita introducciones genéricas.\n"
+        "- Evita frases vacías como 'vamos a hablar de', 'quédate hasta el final' o 'no te lo vas a creer'.\n"
+        "- El hook debe estar relacionado directamente con el hecho real de la noticia.\n"
+        "- No exageres ni utilices clickbait que contradiga la información disponible.\n\n"
+
+        "LONGITUD:\n"
+        "Entre setenta y ciento diez palabras aproximadamente, incluyendo la llamada a la acción final.\n\n"
+
+        "Devuelve únicamente el texto final que será leído en voz alta."
+        )
+
+
         block_text = run_agent(system, block_prompt, model, temperature=script_temperature)
+        short_text = run_agent(system, short_prompt, model, temperature=script_temperature)
 
         script_estructura["sections"].append({
             "type": f"news_{idx + 1}",
             "title": title,
             "link": link,
             "text": block_text,
+            "short_text": short_text,
             "resume": resume,
             "images_paths": item.get("images_paths"),
         })
@@ -646,7 +704,6 @@ def script_control_2(news: list, script_dict: dict) -> dict:
             "- Información inventada. Cambiala a la verdadera.\n"
             "- Datos que contradigan el resumen. Modificalos para que se adapten al resumen.\n"
             "- Spoilers en la introducción o transiciones. Cambiala para que no tenga el spoiler o la noticia completa\n"
-            "- Cifras escritas con números. Reescribe los numeros a como se pronuncian\n"
             "- Texto en inglés. Traducelo al castellano\n"
             "- Meta-texto. Eliminalo, debe verse como el expectador lo va a escuchar\n"
             "- Errores ortográficos o gramaticales evidentes.\n\n"
@@ -769,7 +826,6 @@ def script_control_3(script_dict: dict) -> dict:
     - datos inventados
     - contradicciones con el resumen
     - inglés
-    - cifras escritas con números
     - errores gramaticales
 
     NO cambies absolutamente nada más.
@@ -2339,8 +2395,6 @@ def seo_agent(script_dict: dict) -> dict:
     return result.model_dump()
 
 
-from pathlib import Path
-import subprocess
 
 from IPython.display import display, Audio
 def _split_sentences(text: str, max_chars: int = 180) -> list[str]:
