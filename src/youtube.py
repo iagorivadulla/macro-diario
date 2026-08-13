@@ -198,7 +198,7 @@ def upload_youtube_short(video_path, title, description, long_title, date, last_
     hora.send_keys(last_time)
     hora.send_keys(Keys.ENTER)
 
-    # wait for 3 minutes to yt test our video
+    # wait for 1 minutes to yt test our video
     for i in range(60, 0, -1):
         print(f"Esperando {i} segundos hasta publicar", flush=True)
         time.sleep(1)
@@ -274,7 +274,7 @@ def publish(seo_dict: json):
     VIDEO_PATH = r"C:\Users\usuario\Desktop\Python\Macro News\video\episode.mp4"
 
     #uploads all the info
-    #upload_youtube_long(VIDEO_PATH, long_title, long_description_hashtags)
+    upload_youtube_long(VIDEO_PATH, long_title, long_description_hashtags)
 
     #now uploads the shorts
     SHORTS_PATH = r"C:\Users\usuario\Desktop\Python\Macro News\video\shorts"
@@ -299,7 +299,13 @@ def publish(seo_dict: json):
 
         upload_youtube_short(path, title, description_hashtags, long_title, date, time_str)
 
-        last_time += timedelta(hours=2)
+        #detect if time is greater than 00:00
+        prev_time = last_time
+        last_time += timedelta(hours=2) #adds two hours to last time
+
+        if last_time.day != prev_time.day:
+            last_time = datetime.strptime("23:55", "%H:%M") #sets time at 23:55
+
 
     print("[Publishing] Starting tik tok short videos upload..")
     #now every short to tik tok
@@ -309,7 +315,7 @@ def publish(seo_dict: json):
         hashtags = " ".join(seo['tiktok'][i]['hashtags'])
         description_hashtags = title + '\n\n' + hashtags
 
-        #upload_tiktok(path, description_hashtags)
+        upload_tiktok(path, description_hashtags)
 
 
 
