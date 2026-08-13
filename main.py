@@ -46,7 +46,22 @@ def delete_audios():
             path = os.path.join(SHORTS_AUDIO_PATH, i)
             os.unlink(path)
 
+def delete_videos():
+    if os.path.exists(OUTPUT_VIDEO):
+        os.unlink(OUTPUT_VIDEO)
+
+    for i in os.listdir(SHORTS_AUDIO_PATH): #here comes the shorts too
+        if i.endswith(".mp4"):
+            path = os.path.join(SHORTS_AUDIO_PATH, i)
+            os.unlink(path)
+
 def flow():
+
+    # ------------------------------------------------------------------
+    # 0. Delete old videos
+    # ------------------------------------------------------------------
+    print('Deleting old videos...')
+    delete_videos()
     # ------------------------------------------------------------------
     # 1. Get and filter the news
     # ------------------------------------------------------------------
@@ -74,7 +89,7 @@ def flow():
     for d in denied:
         print(f"  [!] Rechazado: {d['title'][:30]}... | Motivo: {d.get('control_reason')}")
 
-    retries = 0
+    retries = 3
     while denied and retries > 0:
         resumes          = resume_agent(denied)
         accepted, denied = control_agent(resumes)
@@ -153,6 +168,11 @@ def flow():
     publish(SEO_DICT_PATH)
 
 #9:08
+def flow_test():
+    with open(SCRIPT_DICT_PATH, "r", encoding="utf-8") as f:
+        script_dict = json.load(f)
+
+    produce_shorts()
 
 if __name__ == "__main__":
     flow()
