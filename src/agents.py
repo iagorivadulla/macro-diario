@@ -1945,89 +1945,69 @@ def _prepare_for_tts(text: str) -> str:
     return text.strip()
 
 
-def broadcaster_kokoro(
+def broadcaster(
         script_dict: dict,
-        voice={"em_alex": 0.65, "em_santa": 0.25},
         output_path: str = None,
-        speed: float = 0.9,
-        lang: str = "es",
-        chunk_pause: float = 0.6,
+        chunk_pause: float = 0.2,
         section_pause: float = 1.0,
-        section_voices: dict | None = None,
 ) -> str:
-
     import numpy as _np
     from pathlib import Path
+    from omnivoice import OmniVoice
+    import torch
 
     try:
         import soundfile as _sf
     except ImportError:
         raise ImportError("Ejecuta: pip install soundfile")
-    try:
-        from kokoro_onnx import Kokoro
-    except ImportError:
-        raise ImportError("Ejecuta: pip install kokoro-onnx")
 
-    def blend_voices(voices: dict) -> _np.ndarray:
-        total = sum(voices.values())
-        blended = None
-        for name, weight in voices.items():
-            style = kokoro.get_voice_style(name)
-            weighted = style * (weight / total)
-            blended = weighted if blended is None else blended + weighted
-        return blended
-
-    def make_voice(spec):
-        if isinstance(spec, str):
-            return spec
-        if isinstance(spec, dict):
-            return blend_voices(spec)
-        if isinstance(spec, _np.ndarray):
-            return spec
-        raise ValueError(f"Spec de voz no reconocida: {spec!r}")
     # ─────────────────────────────────────────────────────────────────────────
 
-    ROOT = Path(__file__).parent.parent
-    MODEL_URL  = "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx"
-    VOICES_URL = "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin"
-    model_file  = ROOT / "assets" / "audio" / "kokoro-v1.0.onnx"
-    voices_file = ROOT / "assets" / "audio" / "voices-v1.0.bin"
-    FFMPEG = ROOT / "assets" / "audio" / "ffmpeg.exe"
+    model = OmniVoice.from_pretrained(
+        "k2-fsa/OmniVoice",
+        device_map="cuda:0",
+        dtype=torch.float16,
+        load_asr=False
+    )
+
+    def generate_omnivoice(text):
+
+        from omnivoice import VoiceClonePrompt
+
+        VOICE_PROMPT = VoiceClonePrompt.load(
+            r"C:\Users\usuario\Desktop\Python\Macro News\assets\audio\omnivoice_voice.pt")
+
+        samples = model.generate(
+            text=text,
+            language="es",
+            voice_clone_prompt=VOICE_PROMPT,
+            normalize_text=True
+        )
+
+        return samples[0], model.sampling_rate
+
+    # ─────────────────────────────────────────────────────────────────────────
+
+    FFMPEG = r"C:\Users\usuario\Desktop\Python\Macro News\assets\audio\ffmpeg.exe"
 
     if output_path is None:
-        output_path = ROOT / "assets" / "audio" / "output.wav"
-
-    def _download(url, dest):
-        import urllib.request
-        print(f"[Kokoro] Descargando {dest.name}...")
-        tmp = dest.with_suffix(".tmp")
-        urllib.request.urlretrieve(url, tmp)
-        tmp.rename(dest)
-        print(f"[Kokoro] ✓ {dest.name} ({dest.stat().st_size / 1e6:.0f} MB)")
-
-    if not model_file.exists():  _download(MODEL_URL,  model_file)
-    if not voices_file.exists(): _download(VOICES_URL, voices_file)
-
-    kokoro = Kokoro(str(model_file), str(voices_file))
-
-    base_voice = make_voice(voice)   # ← blend_voices ya tiene acceso a kokoro por closure
+        output_path = r"C:\Users\usuario\Desktop\Python\Macro News\assets\audio\output.wav"
 
     sections = script_dict.get("sections", [])
-    print(f"[Kokoro] Sintetizando {len(sections)} secciones | speed: {speed}x | lang: {lang}")
+    print(f"[Broadcaster] Sintetizando {len(sections)} secciones")
 
     all_samples: list = []
     sample_rate: int | None = None
 
     for idx_sec, section in enumerate(sections):
-        sec_type  = section.get("type", "body")
-        sec_voice = make_voice(section_voices[sec_type]) if (section_voices and sec_type in section_voices) else base_voice
+        sec_type = section.get("type", "body")
 
-        text = _prepare_for_tts(section["text"])
+        text = section["text"]
         chunks = _split_sentences(text)
         sec_samples: list = []
 
         for idx, chunk in enumerate(chunks, 1):
-            samples, rate = kokoro.create(chunk, voice=sec_voice, speed=speed, lang=lang)
+            samples, rate = generate_omnivoice(chunk)
             if sample_rate is None:
                 sample_rate = rate
 
@@ -2057,7 +2037,7 @@ def broadcaster_kokoro(
             sec_samples.append(_np.zeros(int(sample_rate * section_pause), dtype=_np.float32))
 
         section_audio = _np.concatenate(sec_samples) if sec_samples else _np.array([], dtype=_np.float32)
-        duration_s    = float(len(section_audio) / sample_rate) if sample_rate else 0.0
+        duration_s = float(len(section_audio) / sample_rate) if sample_rate else 0.0
         section["audio_duration"] = duration_s
         all_samples.append(section_audio)
         print(f"  {'':12s} → {duration_s:.1f}s  ✓")
@@ -2101,9 +2081,10 @@ def broadcaster_kokoro(
     processed_out.rename(out)
 
     total = sum(s["audio_duration"] for s in sections)
-    print(f"[Kokoro] ✓ Audio total: {total:.1f}s  →  {out}")
+    print(f"[Broadcaster] ✓ Audio total: {total:.1f}s  →  {out}")
 
     return "\n\n".join(s["text"] for s in sections)
+
 
 # ---------------------------------------------------------------------------
 # SEO Agent
@@ -2400,205 +2381,6 @@ def seo_agent(script_dict: dict) -> dict:
 
     return result.model_dump()
 
-
-
-from IPython.display import display, Audio
-def _split_sentences(text: str, max_chars: int = 180) -> list[str]:
-    """
-    Divide el texto en fragmentos respetando puntuación.
-    Kokoro tiene un límite de ~510 fonemas por llamada; con max_chars=180
-    los chunks en español quedan muy por debajo de ese límite.
-    """
-    import re
-
-    def _split_by_delimiters(src: str, limit: int) -> list[str]:
-        """Parte src en trozos <= limit chars usando comas/punto y coma como corte."""
-        parts = re.split(r'(?<=[,;])\s+', src)
-        result, current = [], ""
-        for p in parts:
-            if len(current) + len(p) + 1 <= limit:
-                current = f"{current} {p}".strip()
-            else:
-                if current:
-                    result.append(current)
-                # Si incluso la parte sola supera el límite, corte en espacio más cercano
-                while len(p) > limit:
-                    cut = p.rfind(' ', 0, limit)
-                    cut = cut if cut > 0 else limit
-                    result.append(p[:cut].strip())
-                    p = p[cut:].strip()
-                current = p
-        if current:
-            result.append(current)
-        return result
-
-    # Separar por punto, exclamación o interrogación seguido de espacio/fin
-    raw = re.split(r'(?<=[.!?])\s+', text.strip())
-    chunks, current = [], ""
-    for sentence in raw:
-        if len(current) + len(sentence) + 1 <= max_chars:
-            current = f"{current} {sentence}".strip()
-        else:
-            if current:
-                chunks.append(current)
-            current = ""
-            # Si la frase individual supera max_chars, partirla por comas/punto y coma
-            if len(sentence) > max_chars:
-                sub = _split_by_delimiters(sentence, max_chars)
-                # El último sub-trozo se convierte en current para poder fusionarse con lo siguiente
-                chunks.extend(sub[:-1])
-                current = sub[-1] if sub else ""
-            else:
-                current = sentence
-    if current:
-        chunks.append(current)
-    return [c for c in chunks if c.strip()]
-
-model = OmniVoice.from_pretrained(
-        "k2-fsa/OmniVoice",
-        device_map="cuda:0",
-        dtype=torch.float16,
-        load_asr=False
-    )
-
-def generate_omnivoice(text):
-
-    from omnivoice import VoiceClonePrompt
-
-    VOICE_PROMPT = VoiceClonePrompt.load(
-    r"C:\Users\usuario\Desktop\Python\Macro News\assets\audio\omnivoice_voice.pt")
-
-    samples = model.generate(
-        text=text,
-        language="es",
-        voice_clone_prompt=VOICE_PROMPT,
-        normalize_text=True
-    )
-
-    return samples[0], model.sampling_rate
-
-
-def broadcaster(
-        script_dict: dict,
-        output_path: str = None,
-        chunk_pause: float = 0.6,
-        section_pause: float = 1.0,
-) -> str:
-
-    import numpy as _np
-    from pathlib import Path
-    from omnivoice import OmniVoice
-    import torch
-
-
-    try:
-        import soundfile as _sf
-    except ImportError:
-        raise ImportError("Ejecuta: pip install soundfile")
-
-
-    # ─────────────────────────────────────────────────────────────────────────
-
-
-    FFMPEG = r"C:\Users\usuario\Desktop\Python\Macro News\assets\audio\ffmpeg.exe"
-
-    if output_path is None:
-        output_path = r"C:\Users\usuario\Desktop\Python\Macro News\assets\audio\output.wav"
-
-    sections = script_dict.get("sections", [])
-    print(f"[Broadcaster] Sintetizando {len(sections)} secciones")
-
-    all_samples: list = []
-    sample_rate: int | None = None
-
-    for idx_sec, section in enumerate(sections):
-        sec_type  = section.get("type", "body")
-
-
-        text = section["text"]
-        chunks = _split_sentences(text)
-        sec_samples: list = []
-
-        for idx, chunk in enumerate(chunks, 1):
-            samples, rate = generate_omnivoice(chunk)
-            if sample_rate is None:
-                sample_rate = rate
-
-            sec_samples.append(samples)
-            if idx < len(chunks):
-                # Limpiamos espacios finales por si acaso y obtenemos el último carácter
-                last_char = chunk.strip()[-1] if chunk.strip() else ""
-
-                if last_char in {'.', '!', '?', '”', '"'}:
-                    # Pausa completa para fin de frase (0.6s por defecto)
-                    current_pause = chunk_pause
-                elif last_char in {',', ';', ':'}:
-                    # Pausa mucho más corta para encadenar ideas (~0.2s)
-                    current_pause = chunk_pause * 0.35
-                else:
-                    # Si se cortó a la fuerza por el límite de caracteres sin puntuación
-                    # casi no dejamos pausa para que la voz fluya (~0.05s)
-                    current_pause = 0.05
-
-                sec_samples.append(_np.zeros(int(sample_rate * current_pause), dtype=_np.float32))
-                print(
-                    f"  {sec_type:12s} chunk {idx:>2}/{len(chunks)}  ({len(chunk)} chars) [Pausa: {current_pause:.2f}s]")
-            else:
-                print(f"  {sec_type:12s} chunk {idx:>2}/{len(chunks)}  ({len(chunk)} chars)")
-
-        if idx_sec < len(sections) - 1 and sample_rate:
-            sec_samples.append(_np.zeros(int(sample_rate * section_pause), dtype=_np.float32))
-
-        section_audio = _np.concatenate(sec_samples) if sec_samples else _np.array([], dtype=_np.float32)
-        duration_s    = float(len(section_audio) / sample_rate) if sample_rate else 0.0
-        section["audio_duration"] = duration_s
-        all_samples.append(section_audio)
-        print(f"  {'':12s} → {duration_s:.1f}s  ✓")
-
-    combined = _np.concatenate(all_samples)
-    out = Path(output_path)
-    _sf.write(str(out), combined, sample_rate)
-
-    # Audio más tipo podcast
-    processed_out = out.with_name(out.stem + "_processed.wav")
-
-    '''subprocess.run([
-        str(FFMPEG), "-y", "-i", str(out),
-        "-af",
-        "highpass=f=80,"
-        "acompressor=threshold=-20dB:ratio=2.5:attack=10:release=200:makeup=2,"
-        "anequalizer=c0 f=500 w=200 g=-2 t=0|c0 f=3000 w=1000 g=2.5 t=0,"
-        "lowpass=f=16000,"
-        "loudnorm=I=-16:TP=-1.5:LRA=11,"
-        "aresample=24000",
-        "-acodec", "pcm_s16le",
-        "-ar", "24000",
-        "-ac", "1",
-        str(processed_out)
-    ], check=True)'''
-
-    subprocess.run([
-        str(FFMPEG), "-y", "-i", str(out),
-        "-af",
-        "highpass=f=80,"
-        "acompressor=threshold=-16dB:ratio=1.5:attack=25:release=300:makeup=1,"
-        "loudnorm=I=-16:TP=-1.5:LRA=11,"
-        "aresample=24000",
-        "-acodec", "pcm_s16le",
-        "-ar", "24000",
-        "-ac", "1",
-        str(processed_out)
-    ], check=True)
-
-    out.unlink()  # elimina el original
-    processed_out.rename(out)
-
-    total = sum(s["audio_duration"] for s in sections)
-    print(f"[Broadcaster] ✓ Audio total: {total:.1f}s  →  {out}")
-
-    return "\n\n".join(s["text"] for s in sections)
-
-
 def seo_agent_v2(script_dict: dict):
     '''
     Genera toda la metadata SEO del episodio y de todos los Shorts
@@ -2609,8 +2391,8 @@ def seo_agent_v2(script_dict: dict):
     model = seo_model
     print("Generando metadata SEO...")
 
-    meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre",
-             "noviembre", "diciembre"]
+    meses = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct",
+             "nov", "dic"]
 
     hoy = datetime.now()
 
@@ -2632,99 +2414,18 @@ def seo_agent_v2(script_dict: dict):
     #-------------------------------------------------------------
 
     system = """
-    Eres un especialista senior en SEO y descubrimiento de contenido
-    para YouTube y TikTok, especializado en economía, mercados financieros,
-    bolsa, macroeconomía, tecnología e inteligencia artificial.
+        Eres un estratega senior de SEO en YouTube y TikTok Growth, especializado en canales de finanzas, tecnología y macroeconomía.
 
-    Tu objetivo es maximizar la capacidad del contenido para ser descubierto
-    por usuarios interesados en estos temas y aumentar el CTR, manteniendo
-    siempre precisión periodística.
-    
-    IMPORTANTE ASEGURARSE QUE ESTA TODO EN CASTELLANO
+        TU OBJETIVO:
+        Maximizar el CTR (Click-Through Rate), el posicionamiento en búsquedas (SEO) y la tasa de descubrimiento por recomendación de algoritmo, manteniendo 100% de rigor informativo y honestidad periodística.
 
-    PRINCIPIOS FUNDAMENTALES:
-
-    - Nunca inventes información.
-    - Utiliza exclusivamente la información proporcionada.
-    - No atribuyas hechos, cifras o declaraciones que no aparezcan en los datos.
-    - No conviertas una posibilidad en un hecho.
-    - No utilices clickbait engañoso.
-    - No exageres las consecuencias de una noticia.
-    - Prioriza entidades, empresas, personas, mercados y conceptos realmente
-      presentes en la noticia.
-    - Utiliza lenguaje natural.
-    - Evita repetir innecesariamente la misma keyword.
-    - No hagas keyword stuffing.
-    - No uses emojis.
-    - No uses hashtags genéricos sin relación con el contenido.
-    - No utilices mayúsculas innecesarias.
-    - No utilices comillas.
-    - Los títulos deben ser atractivos pero periodísticamente honestos.
-
-    SEO:
-
-    La keyword principal debe representar aquello que un usuario realmente
-    buscaría para encontrar este contenido.
-
-    Prioriza keywords específicas sobre términos excesivamente generales.
-
-    Ejemplo:
-
-    MALA:
-    "mercados"
-
-    MEJOR:
-    "Bitcoin Strategy"
-    "Shopify inteligencia artificial"
-    "Meta vs Alphabet"
-    "vehículos autónomos Zoox"
-
-    Cuando una noticia contiene una empresa, activo, persona o concepto
-    relevante, considera esa entidad como posible keyword principal.
-
-    No introduzcas keywords que no estén respaldadas por la noticia.
-
-    YOUTUBE:
-
-    YouTube utiliza principalmente el título, la descripción, el contenido
-    del vídeo y el comportamiento de los usuarios para comprender y distribuir
-    el contenido.
-
-    El título debe ser claro, específico, atractivo y en castellano.
-
-    La descripción debe explicar naturalmente el contenido del vídeo e incluir
-    las principales entidades y conceptos de la noticia sin parecer escrita
-    para un buscador.
-
-    YOUTUBE SHORTS:
-
-    El título debe identificar rápidamente el tema principal del vídeo.
-    Prioriza reconocimiento inmediato, capacidad de descubrimiento y estar en castellano.
-
-    TIKTOK:
-
-    El texto debe ser más directo y natural y en castellano.
-
-    Prioriza términos que permitan identificar rápidamente el tema del vídeo
-    y hashtags estrechamente relacionados con la noticia.
-
-    HASHTAGS:
-
-    Utiliza únicamente hashtags directamente relacionados con el contenido.
-
-    Combina:
-    - tema principal
-    - entidad principal
-    - sector o categoría
-    - contexto económico
-
-    Evita utilizar demasiados hashtags.
-
-    FORMATO:
-
-    Devuelve EXCLUSIVAMENTE JSON válido.
-    No escribas explicaciones fuera del JSON.
-    """
+        REGLAS DE ORO DE SEO Y CTR:
+        1. IDIOMA: Todo el contenido debe generarse estrictamente en CASTELLANO.
+        2. KEYWORDS PRIMARIAS: Deben colocarse lo más a la IZQUIERDA posible en títulos y descripciones (los usuarios y algoritmos leen de izquierda a derecha).
+        3. FRACTURA DE PATRÓN (HOOKS): Usa palabras de impacto y verbos de acción en títulos de Shorts/TikTok ('Dispara', 'Caída', 'Clave', 'Alerta', 'Récord').
+        4. SIN CARACTERES PROHIBIDOS: No uses emojis ni comillas. Usa números en lugar de palabras ($500B en lugar de 500 mil millones) para optimizar espacio y legibilidad.
+        5. CERO ENGAÑOS: Sé provocativo y atractivo, pero NUNCA inventes o exageres datos que no estén en la noticia.
+        """
 
     #----------------------------------------------------------------------------
     # Long Video Metadata
@@ -2733,119 +2434,38 @@ def seo_agent_v2(script_dict: dict):
     print('Analizando video largo...')
 
     long_video_prompt = f"""
-    Analiza TODAS las noticias del episodio antes de generar cualquier resultado.
+        Analiza TODAS las noticias del episodio para generar la metadata del VIDEO LARGO.
 
-    FECHA DEL EPISODIO:
-    {date}
+        FECHA: {date}
+        NOTICIAS: {news}
 
-    NOTICIAS:
-    {news}
+        ==================================================
+        INSTRUCCIONES DE METADATA
+        ==================================================
 
-    ==================================================
-    PASO 1 — NOTICIA PROTAGONISTA
-    ==================================================
+        1. NOTICIA PROTAGONISTA (main_news_id):
+           Selecciona la noticia con mayor impacto en bolsas, divisas o decisión de inversión.
 
-    Identifica la noticia con mayor relevancia económica y mayor potencial
-    de interés para una audiencia interesada en:
+        2. PRIMARY KEYWORD:
+           Término exacto con alto volumen de búsqueda en Google/YouTube. Ejemplo: "Caída de Nvidia", "Precio del Petróleo", "Acciones de SpaceX".
 
-    - economía
-    - mercados
-    - bolsa
-    - inversión
-    - macroeconomía
+        3. TÍTULO (MAX 90 CARACTERES):
+           - Debe comenzar exactamente con: Macro Diario | {date}:
+           - La keyword principal y la entidad relevante deben ir inmediatamente después del prefijo.
+           - Debe plantear una consecuencia o pregunta clave para el inversor.
+           - Ejemplo: Macro Diario | {date}: ¿Por qué cae Nvidia tras el anuncio de $500B?
 
-    No elijas necesariamente la noticia más llamativa.
+        4. DESCRIPCIÓN (OPTIMIZADA PARA KEY MOMENTS Y SEO):
+           Redacta la descripción estructurada en este orden exacto:
+           - Línea 1-2 (Hook SEO): Resume la noticia principal respondiendo a la búsqueda del usuario e incluyendo la keyword principal.
+           - Resumen del Programa: Presenta las noticias secundarias en párrafos fluidos utilizando términos semánticos (ej: Wall Street, Fed, tasa de interés, acciones, mercado).
+           - Impacto Económico: Breve frase que explique cómo afecta esto al bolsillo/cartera del inversor.
+           - CTA: "Suscríbete a Macro Diario para recibir el análisis diario de mercados."
 
-    Prioriza:
-    1. impacto económico
-    2. relevancia para inversores
-    3. relevancia de la empresa, activo o mercado implicado
-    4. claridad del tema
-    5. potencial de búsqueda
-    6. actualidad
+        5. HASHTAGS (Entre 6 y 10):
+           Combina: Entidades clave (#Nvidia, #SpaceX) + Sectores (#InteligenciaArtificial, #Petroleo) + Macro (#Mercados, #Bolsa, #Inversion).
 
-    Devuelve su news_id.
-
-    ==================================================
-    PASO 2 — KEYWORD PRINCIPAL
-    ==================================================
-
-    Identifica la keyword principal que un usuario podría utilizar para buscar
-    información sobre esta noticia.
-
-    La keyword debe ser específica.
-
-    Prioriza:
-
-    empresa + evento
-    activo + evento
-    persona + evento
-    mercado + evento
-    concepto económico + evento
-
-    No utilices una keyword genérica si existe una alternativa más específica.
-
-    ==================================================
-    PASO 3 — TÍTULO
-    ==================================================
-
-    Genera el título del vídeo.
-
-    REGLAS:
-
-    - Debe comenzar exactamente con:
-      Macro Diario | {date}:
-    - Máximo 90 caracteres. Esto incluye el punto anterior "Macro Diario | {date}:
-    - La keyword principal debe aparecer de forma natural.
-    - Debe ser comprensible sin contexto adicional.
-    - Debe despertar curiosidad legítima.
-    - Debe dejar claro cuál es el acontecimiento principal.
-    - No debe parecer un título genérico de noticias.
-    - No debe utilizar clickbait.
-    - No debe mencionar una noticia secundaria.
-    - No utilices emojis.
-    - No utilices comillas.
-    - Debe estar en castellano
-
-    IMPORTANTE:
-
-    El prefijo y la fecha forman parte del límite de 90 caracteres.
-
-    ==================================================
-    PASO 4 — DESCRIPCIÓN
-    ==================================================
-
-    Genera una descripción completa y optimizada para YouTube que abarque TODO el noticiero.
-
-    Estructura requerida:
-    1. GANCHO Y TEMA PRINCIPAL: Comienza sintetizando el panorama global del día y destacando la noticia protagonista (incluyendo su keyword natural).
-    2. DESGLOSE DEL NOTICIERO: Resume brevemente el resto de noticias incluidas en el episodio, dando contexto de por qué importan para el mercado o los inversores. Debe sentirse como un menú/resumen del programa completo.
-    3. POR QUÉ IMPORTA: Una frase final que conecte todo el bloque de noticias con el impacto macro/financiero global.
-    4. LLAMADA A LA ACCIÓN (CTA): Una invitación natural a suscribirse a Macro Diario para no perderse el análisis diario.
-    
-    REGLAS:
-    - Mantener tono periodístico, natural y fluido.
-    - No hacer listas artificiales de palabras clave.
-    - No incluir hashtags dentro del texto de la descripción.
-    
-    ==================================================
-    PASO 5 — HASHTAGS DEL NOTICIERO
-    ==================================================
-    
-    Genera entre 6 y 10 hashtags que representen el CONJUNTO del episodio.
-    
-    Deben cubrir:
-    - La noticia protagonista y su entidad principal.
-    - Las demás noticias secundarias o sectores clave mencionados en el episodio.
-    - Contexto macroeconómico o de mercado general (ej: #Inversion, #Mercados, #Bolsa).
-    
-    REGLAS:
-    - Todos deben estar directamente relacionados con el contenido del día.
-    - Cero hashtags genéricos (evitar #viral, #fyp, #trending, #parati).
-
-    ==================================================
-
-    DEVUELVE EXCLUSIVAMENTE:
+        DEVUELVE JSON CON ESTA ESTRUCTURA:
         {{
             "main_news_id": 0,
             "primary_keyword": "",
@@ -2854,8 +2474,7 @@ def seo_agent_v2(script_dict: dict):
             "description": "",
             "hashtags": []
         }}
-    
-    """
+        """
 
     long_video = run_agent(system=system, prompt=long_video_prompt, model= seo_model, schema=EpisodeSEO ,temperature=seo_temperature)
     full_seo_data['episode'] = long_video.model_dump()
@@ -2871,205 +2490,58 @@ def seo_agent_v2(script_dict: dict):
 
     for i in news:
         short_prompt = f"""
-        Genera la metadata SEO para un YouTube Short basado exclusivamente
-        en esta noticia.
+                Genera la metadata de YOUTUBE SHORTS para esta noticia:
+                ID: {i["news_id"]} | TÍTULO: {i["title"]} | RESUMEN: {i["summary"]}
 
-        NOTICIA:
+                REGLAS DE TÍTULO SHORTS (MAX 90 CARACTERES):
+                - Debe comenzar exactamente con: Macro Diario |
+                - Debe contener la entidad + evento clave + cifra impactante si existe.
+                - Usa estructuras de alto CTR como: "¿Qué pasa con...?", "...se dispara tras...", "Alerta en...".
+                - Ejemplo: Macro Diario | SpaceX se desploma tras su IPO: ¿Qué hacer?
 
-        ID: {i["news_id"]}
-        TÍTULO: {i["title"]}
-        RESUMEN: {i["summary"]}
+                DESCRIPCIÓN SHORTS:
+                - Explicación de 2 o 3 frases directas. Usa palabras clave como 'inversión', 'mercado' o el ticker de la empresa.
+                - Cierra con: "Mira el análisis completo en el canal de Macro Diario."
 
-        ==================================================
-        KEYWORD
-        ==================================================
+                HASHTAGS (4 a 6):
+                - Solo hashtags directamente relacionados con la entidad, el sector y el mercado.
 
-        Identifica:
-
-        - primary_keyword
-        - secondary_keywords
-
-        La keyword principal debe ser el término más importante que un usuario
-        utilizaría para encontrar esta noticia.
-
-        Debe ser específica y estar directamente respaldada por el contenido.
-
-        ==================================================
-        TÍTULO
-        ==================================================
-
-        Genera un título optimizado para YouTube Shorts.
-
-        REGLAS:
-
-        - Debe comenzar exactamente con:
-          Macro Diario |
-        - Máximo 90 caracteres.
-        - Debe contener la keyword principal de forma natural.
-        - Debe identificar inmediatamente el acontecimiento.
-        - Debe generar curiosidad legítima.
-        - Debe ser comprensible incluso para alguien que no haya visto el episodio.
-        - Prioriza entidades concretas: empresas, personas, activos o mercados.
-        - No inventes información.
-        - No utilices clickbait engañoso.
-        - No uses emojis.
-        - No uses comillas.
-        - No escribas todo en mayúsculas.
-        - Debe estar en castellano.
-        
-        - Usa números: "Inversión de $2.5B en..."
-        - Usa verbos fuertes: "Explota", "Colapsa", "Dispara", "Aplasta"
-        - Genera curiosidad: "¿Por qué todos miran a Edison?"
-        - Ejemplos que FUNCIONAN:
-          ✅ "SpaceX se DESPLOMA 15% tras accidente" (vs "SpaceX enfrenta caída")
-          ✅ "Yen se dispara: ¿Fin de la incertidumbre?" (vs "Yen se fortalece")
-          ✅ "Petrobras DUPLICA ganancias en un solo día" (vs "Petrobras duplica")
-
-
-        ==================================================
-        DESCRIPCIÓN
-        ==================================================
-
-        Genera una descripción breve para YouTube Shorts.
-
-        Debe:
-
-        - explicar inmediatamente qué ocurrió
-        - incluir naturalmente la keyword principal
-        - mencionar las entidades relevantes
-        - explicar por qué importa
-        - ser fácil de leer
-        - no repetir keywords artificialmente
-        - ser corta
-
-        Termina con una llamada breve a seguir Macro Diario.
-
-        No incluyas hashtags dentro de la descripción.
-
-        ==================================================
-        HASHTAGS
-        ==================================================
-
-        Genera entre 4 y 6 hashtags.
-
-        Prioriza:
-
-        - keyword principal
-        - empresa o activo
-        - sector
-        - economía/mercados
-
-        No utilices hashtags genéricos como:
-        #viral
-        #fyp
-        #trending
-
-        ==================================================
-
-        DEVUELVE EXCLUSIVAMENTE:
-
-        {{
-            "short": {{
-                "news_id": {i["news_id"]},
-                "primary_keyword": "",
-                "secondary_keywords": [],
-                "title": "",
-                "description": "",
-                "hashtags": []
-            }}
-        }}
-        """
+                DEVUELVE JSON:
+                {{
+                    "news_id": {i["news_id"]},
+                    "primary_keyword": "",
+                    "secondary_keywords": [],
+                    "title": "",
+                    "description": "",
+                    "hashtags": []
+                }}
+                """
 
         short_video = run_agent(system=system, prompt=short_prompt, model=seo_model, schema=ShortSEO, temperature=seo_temperature)
         shorts_data.append(short_video.model_dump())
 
         tik_tok_prompt = f"""
-        Genera la metadata para TikTok basada exclusivamente en esta noticia.
+                Genera la metadata para TIKTOK basada en esta noticia:
+                ID: {i["news_id"]} | TÍTULO: {i["title"]} | RESUMEN: {i["summary"]}
 
-        NOTICIA:
+                REGLAS DE TÍTULO/CAPTION TIKTOK (MAX 90 CARACTERES):
+                - Debe ser súper directo, coloquial y enfocado en la curiosidad inmediata.
+                - Usa palabras de alta conversión: "Cuidado", "Atención", "Récord", "Inesperado", "Desplome".
+                - No incluyas el prefijo 'Macro Diario' en TikTok para aprovechar todos los caracteres en el hook.
+                - Ejemplo: ¡Ojo si tienes acciones de SpaceX! Esto pasa tras su IPO
 
-        ID: {i["news_id"]}
-        TÍTULO: {i["title"]}
-        RESUMEN: {i["summary"]}
+                HASHTAGS TIKTOK (4 a 6):
+                - Mezcla del tema específico (#SpaceX) y nicho financiero (#AprendeAInvertir, #Finanzas, #FinanzasPersonales).
 
-        ==================================================
-        KEYWORD
-        ==================================================
-
-        Identifica la keyword principal y hasta 4 keywords secundarias.
-
-        La keyword principal debe representar el concepto, empresa, activo,
-        persona o acontecimiento que un usuario podría buscar relacionado
-        con esta noticia.
-
-        ==================================================
-        TÍTULO / TEXTO DE DESCUBRIMIENTO
-        ==================================================
-
-        Genera un título o texto corto para acompañar el vídeo.
-
-        REGLAS:
-
-        - Máximo 90 caracteres.
-        - Debe mencionar el tema principal de forma inmediata.
-        - Debe incluir la keyword principal de forma natural.
-        - Debe despertar curiosidad.
-        - Debe sonar natural en TikTok.
-        - Puede ser más directo que un titular periodístico tradicional.
-        - No inventes información.
-        - No utilices clickbait engañoso.
-        - No uses emojis.
-        - No uses comillas.
-        - Debe estar en castellano.
-        
-        - Usa números: "Inversión de $2.5B en..."
-        - Usa verbos fuertes: "Explota", "Colapsa", "Dispara", "Aplasta"
-        - Genera curiosidad: "¿Por qué todos miran a Edison?"
-        - Ejemplos que FUNCIONAN:
-          ✅ "SpaceX se DESPLOMA 15% tras accidente" (vs "SpaceX enfrenta caída")
-          ✅ "Yen se dispara: ¿Fin de la incertidumbre?" (vs "Yen se fortalece")
-          ✅ "Petrobras DUPLICA ganancias en un solo día" (vs "Petrobras duplica")
-
-        ==================================================
-        HASHTAGS
-        ==================================================
-
-        Genera entre 4 y 6 hashtags.
-
-        Los hashtags deben tener una relación directa con la noticia.
-
-        Combina:
-
-        1. keyword principal
-        2. empresa/persona/activo
-        3. sector
-        4. contexto económico
-
-        Evita hashtags genéricos o diseñados únicamente para intentar conseguir
-        viralidad.
-
-        No utilices:
-        #fyp
-        #viral
-        #parati
-        #trending
-
-        si no aportan información sobre el contenido.
-
-        ==================================================
-
-        DEVUELVE EXCLUSIVAMENTE:
-
-        {{
-            "tik_tok": {{
-                "news_id": {i["news_id"]},
-                "primary_keyword": "",
-                "secondary_keywords": [],
-                "title": "",
-                "hashtags": []
-            }}
-        }}
-        """
+                DEVUELVE JSON:
+                {{
+                    "news_id": {i["news_id"]},
+                    "primary_keyword": "",
+                    "secondary_keywords": [],
+                    "title": "",
+                    "hashtags": []
+                }}
+                """
 
         tik_tok_video = run_agent(system=system, prompt=tik_tok_prompt, model=seo_model, schema=TiktokSEO, temperature=seo_temperature)
         tik_tok_data.append(tik_tok_video.model_dump())
@@ -3077,3 +2549,6 @@ def seo_agent_v2(script_dict: dict):
     full_seo_data['tiktok'] = tik_tok_data
 
     return full_seo_data
+
+
+
