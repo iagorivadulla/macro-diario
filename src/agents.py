@@ -2095,8 +2095,6 @@ try:
 except:
     pass
 
-
-
 def seo_agent(script_dict: dict) -> dict:
     """
     Genera toda la metadata SEO del episodio y de todos los Shorts
@@ -2454,6 +2452,7 @@ def seo_agent_v2(script_dict: dict):
            - La keyword principal y la entidad relevante deben ir inmediatamente después del prefijo.
            - Debe plantear una consecuencia o pregunta clave para el inversor.
            - Ejemplo: Macro Diario | {date}: ¿Por qué cae Nvidia tras el anuncio de $500B?
+           - El total del título no debe ser superior a 90 caracteres contando los espacios.
 
         4. DESCRIPCIÓN (OPTIMIZADA PARA KEY MOMENTS Y SEO):
            Redacta la descripción estructurada en este orden exacto:
