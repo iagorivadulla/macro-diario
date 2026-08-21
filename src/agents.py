@@ -2378,7 +2378,6 @@ def seo_agent_v2(script_dict: dict):
 
     full_seo_data = {}
 
-    model = seo_model
     print("Generando metadata SEO...")
 
     meses = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct",
@@ -2386,7 +2385,7 @@ def seo_agent_v2(script_dict: dict):
 
     hoy = datetime.now()
 
-    date = f"{hoy.day} de {meses[hoy.month - 1]} de {hoy.year}"
+    date = f"{hoy.day}/{meses[hoy.month - 1]}/{hoy.year}"
 
     news = []
 
@@ -2477,7 +2476,6 @@ def seo_agent_v2(script_dict: dict):
     print('Analizando shorts...')
 
     shorts_data = []
-    tik_tok_data = []
 
     for i in news:
         short_prompt = f"""
