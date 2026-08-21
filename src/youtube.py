@@ -58,6 +58,10 @@ def upload_youtube_long(video_path, title, description):
 
     wait = WebDriverWait(driver, 20)
 
+    #for kids click
+    for_kids = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="audience"]/ytkc-made-for-kids-select/div[4]/tp-yt-paper-radio-group/tp-yt-paper-radio-button[2]')))
+    for_kids.click()
+
     #click mostrar mas section
     mostrar_mas = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="toggle-button"]/div/ytcp-button-shape/button')))
     mostrar_mas.click()
@@ -143,6 +147,11 @@ def upload_youtube_short(video_path, title, description, long_title, date, last_
     descripcion.send_keys(description)
 
     wait = WebDriverWait(driver, 20)
+
+    # for kids click
+    for_kids = wait.until(EC.element_to_be_clickable((By.XPATH,
+                                                      '//*[@id="audience"]/ytkc-made-for-kids-select/div[4]/tp-yt-paper-radio-group/tp-yt-paper-radio-button[2]')))
+    for_kids.click()
 
     # click mostrar mas section
     mostrar_mas = wait.until(
