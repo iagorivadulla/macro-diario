@@ -176,12 +176,6 @@ def upload_youtube_short(video_path, title, description, long_title, date, last_
     next.click()
     driver.implicitly_wait(15)
 
-    # click public button to publish the video now
-    #publico = wait.until(
-    #    EC.element_to_be_clickable((By.XPATH, '//*[@id="privacy-radios"]/tp-yt-paper-radio-button[3]')))
-    #publico.click()
-    #driver.implicitly_wait(15)
-
     program = wait.until(EC.element_to_be_clickable((By.XPATH,'//*[@id="second-container-expand-button"]')))
     program.click()
 
@@ -199,13 +193,17 @@ def upload_youtube_short(video_path, title, description, long_title, date, last_
     hora.send_keys(Keys.ENTER)
 
     # wait for 1 minutes to yt test our video
-    for i in range(60, 0, -1):
+    for i in range(20, 0, -1):
         print(f"Esperando {i} segundos hasta publicar", flush=True)
         time.sleep(1)
 
     # PUBLISH!!!!!
     publish = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="done-button"]/div/ytcp-button-shape/button')))
     publish.click()
+
+    #acept not passed revision
+    accept = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="primary-action-button"]/div/ytcp-button-shape/button/yt-touch-feedback-shape')))
+    accept.click()
 
     time.sleep(10)
     driver.quit()
