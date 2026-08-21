@@ -1,177 +1,335 @@
 {
   "episode": {
     "main_news_id": 4,
-    "primary_keyword": "Mercados estadounidenses caen por alza de petróleo y caída de Nvidia",
+    "primary_keyword": "Rally de Oro y Bitcoin",
     "secondary_keywords": [
-      "Crudo Hormuz",
-      "Inversores",
-      "Fed",
-      "Inflación",
-      "Nvidia"
+      "Movimiento del Tesoro",
+      "Rendimientos de Bonos",
+      "Inversión en Metales",
+      "FOMC Minutes"
     ],
-    "title": "Macro Diario | 12 de agosto de 2026: Mercados caen por alza del petróleo y caída de Nvidia",
-    "description": "El mercado estadounidense abrió en baja el lunes con el S&P 500 en -0,1%, el Dow Jones en -0,1% y el Nasdaq en -0,3%, impulsado por el alza del crudo y la caída del 3% de Nvidia tras un reporte sobre financiación de IA. La tensión geopolítica en el Estrecho de Hormuz y la incertidumbre sobre su reabre presionan los precios globales, mientras que la Fed muestra división sobre ajustes de tipos. En el resto del noticiero: los precios del crudo alcanzan máximos de una semana tras ataques a infraestructura saudita, Apple enfrenta presión por costos de memoria y Zeta Global se posiciona como próximo candidato en tecnología. Todos estos factores reflejan la complejidad del entorno macroeconómico y su impacto en inversiones. ¡Suscríbete a Macro Diario para no perder detalle del análisis diario!",
+    "title": "Macro Diario | 21 de ago de 2026: ¿Por qué sube Oro y Bitcoin tras el anuncio del Tesoro?",
+    "description": "El Tesoro EE.UU. duplicó compras de bonos, impulsando rally de Oro (+2.7%) y Bitcoin (+5%). ¿Qué implica para inversiones? | Wall Street recupera terreno tras ajuste de tipos. XRP rompe resistencia clave. SpaceX busca adquirir Cognition AI. Diesel alcanza $102 por barril. Tipos hipotecarios en 6.68%. Suscríbete a Macro Diario para recibir el análisis diario de mercados.",
     "hashtags": [
+      "#TesoroEEUU",
+      "#Oro",
+      "#Bitcoin",
+      "#Inversion",
+      "#FOMC",
       "#Mercados",
-      "#Inversión",
       "#Bolsa",
-      "#Inflación",
-      "#Nvidia",
-      "#CrudoHormuz",
-      "#Fed",
-      "#MacroEconomía",
-      "#Tecnología",
-      "#Inversores"
+      "#InteligenciaArtificial",
+      "#Petroleo",
+      "#TiposInteres"
     ]
   },
   "shorts": [
     {
       "news_id": 1,
-      "primary_keyword": "precios del crudo suben",
+      "primary_keyword": "oro precios",
       "secondary_keywords": [
-        "Estrecho de Ormuz",
-        "tensión geopolítica",
-        "ataques a refinerías sauditas"
+        "FOMC",
+        "inversión",
+        "mercado",
+        "bonos",
+        "inflación",
+        "Medio Oriente"
       ],
-      "title": "Macro Diario | Precios del crudo suben por incertidumbre en el Estrecho de Ormuz",
-      "description": "Los precios del crudo alcanzan máximos de una semana tras ataques a buques y refinerías en el Estrecho de Ormuz. La tensión geopolítica y cuellos de botella en la oferta global presionan los mercados. ¿Qué impacto tendrá en la economía global?  Sigue Macro Diario.",
+      "title": "Macro Diario | Oro se dispara tras FOMC: ¿$4,479.90?",
+      "description": "El oro sube a $4,479.90 tras el FOMC. La inflación y la tensión en el Medio Oriente afectan la visión de los tipos. Inversión en oro y mercado en alerta. Mira el análisis completo en el canal de Macro Diario.",
       "hashtags": [
-        "#preciosdelcrudo",
-        "#EstrechoDeOrmuz",
-        "#mercadosenergéticos",
-        "#tensióngeopolítica"
+        "#oro",
+        "#FOMC",
+        "#inversión",
+        "#mercado",
+        "#inflación",
+        "#MedioOriente"
       ]
     },
     {
       "news_id": 2,
-      "primary_keyword": "Apple (AAPL) Downgraded",
+      "primary_keyword": "XRP Price Prediction",
       "secondary_keywords": [
-        "Jefferies downgrade",
-        "iPhone pricing",
-        "memory costs"
+        "XRP Support Level",
+        "SEC Regulations",
+        "Crypto Market",
+        "Bitcoin Liquidations",
+        "Crypto Trading"
       ],
-      "title": "Macro Diario | Apple (AAPL) Downgraded tras reducir precio a $263,66 por costos de memoria",
-      "description": "Jefferies rebajó Apple a Underperform y ajustó su objetivo a $263,66 tras cancelar el iPhone de vidrio puro. La decisión refleja presión por costos de memoria y dependencia de innovaciones como los iPhones plegables. ¿Cómo afecta esto a los márgenes de la empresa? ¡Sigue Macro Diario para más análisis!",
+      "title": "Macro Diario | ¿Qué pasa con XRP tras subir 6% tras reglas SEC?",
+      "description": "XRP sube 6% tras nuevas reglas de la SEC, rompiendo resistencia de $1. Inversores destacan liquidaciones de $1.7B y el impacto de regulaciones en el mercado. Mira el análisis completo en el canal de Macro Diario.",
       "hashtags": [
-        "#AppleDowngrade",
-        "#Jefferies",
-        "#iPhonePricing",
-        "#MemoryCosts",
-        "#Economía",
-        "#Mercados"
+        "#XRP",
+        "#CryptoMarket",
+        "#SECRegulations",
+        "#Bitcoin",
+        "#CryptoTrading",
+        "#MarketAnalysis"
       ]
     },
     {
       "news_id": 3,
-      "primary_keyword": "Zeta Global Holdings Corp",
+      "primary_keyword": "SpaceX adquiere Cognition AI",
       "secondary_keywords": [
-        "Nvidia",
-        "OpenAI",
-        "Palantir",
-        "inteligencia empresarial"
+        "$26B",
+        "valoración $40B",
+        "IA",
+        "inversión",
+        "mercado tecnológico"
       ],
-      "title": "Macro Diario | Zeta Global (ZETA) se convierte en la próxima gran apuesta tras Nvidia",
-      "description": "Los inversores en Reddit destacan a Zeta Global Holdings Corp (ZETA) como posible sucesor de Nvidia, tras su crecimiento explosivo y alianzas con OpenAI y Palantir. Sin embargo, se advierte sobre su dependencia de gastos políticos y la adquisición de Marigold. ¿Seguirá subiendo el precio? #MacroDiario",
+      "title": "Macro Diario | SpaceX intenta adquirir Cognition AI: ¿$40B?",
+      "description": "SpaceX exploró adquirir Cognition AI, valorada en $26B, con conversaciones sobre $40B. El interés refleja la estrategia de Musk en IA. Inversión clave en tecnología. Mira el análisis completo en el canal de Macro Diario.",
       "hashtags": [
-        "#ZetaGlobal",
-        "#Nvidia",
-        "#OpenAI",
-        "#Palantir",
-        "#MercadosFinancieros",
-        "#InteligenciaEmpresarial"
+        "#SpaceX",
+        "#CognitionAI",
+        "#IA",
+        "#MercadoTech",
+        "#Inversión",
+        "#MacroDiario"
       ]
     },
     {
       "news_id": 4,
-      "primary_keyword": "Nvidia cae 3% tras reporte de $500B en IA",
+      "primary_keyword": "Tesoro EE.UU.",
       "secondary_keywords": [
-        "S&P 500 cae 0.1%",
-        "Dow Jones baja 0.1%",
-        "Fed dividida sobre tipos",
-        "precios del petróleo suben"
+        "Mercado Bonos",
+        "Oro",
+        "Bitcoin",
+        "Macro Economía",
+        "Inversiones"
       ],
-      "title": "Macro Diario | Nvidia cae 3% tras reporte de $500B en IA: Mercados y petróleo suben",
-      "description": "Los mercados estadounidenses bajan hoy con el S&P 500 en -0.1% y el Nasdaq en -0.3%, mientras que Nvidia cae 3% tras el anuncio del paquete de $500B para IA. Los precios del petróleo suben y la Fed sigue dividida sobre ajustes de tipos. ¿Qué implica para la economía? ¡Sigue Macro Diario para más análisis!",
+      "title": "Macro Diario | Tesoro EE.UU. duplica compras de bonos a $4B: ¿Qué pasa con oro y Bitcoin?",
+      "description": "El Tesoro de EE.UU. duplicó compras de bonos de largo plazo a $4B, impulsando oro y Bitcoin. Inversión en activos volátiles: ¿Cómo afecta la liquidez al mercado? Mira el análisis completo en el canal de Macro Diario.",
       "hashtags": [
-        "#NvidiaCae3%",
-        "#MercadosEstadounidenses",
-        "#FedDividida",
-        "#PetróleoSube",
-        "#IAInfraestructura",
-        "#MacroDiario"
+        "#TesoroEEUU",
+        "#MercadoBonos",
+        "#Oro",
+        "#Bitcoin",
+        "#MacroEconomia",
+        "#Inversiones"
+      ]
+    },
+    {
+      "news_id": 5,
+      "primary_keyword": "Diésel",
+      "secondary_keywords": [
+        "spread",
+        "inventarios",
+        "inflación",
+        "Oriente Medio",
+        "Rusia",
+        "China"
+      ],
+      "title": "Macro Diario | Diésel se dispara tras $100 de spread: ¿Qué pasa con el mercado?",
+      "description": "El spread del diésel alcanzó $102 por barril, récord histórico, mientras los inventarios mundiales caen 12% por debajo de la media de cinco años. La escasez física en el diésel, clave para la economía y la inflación, se intensifica debido a conflictos en Oriente Medio, Rusia y China. Inversores deben vigilar la evolución de los inventarios y la logística para anticipar movimientos en el mercado. Mira el análisis completo en el canal de Macro Diario.",
+      "hashtags": [
+        "#Diésel",
+        "#MercadoPetrolero",
+        "#Inflación",
+        "#OrienteMedio",
+        "#Rusia",
+        "#China"
+      ]
+    },
+    {
+      "news_id": 6,
+      "primary_keyword": "MercadosEstadosUnidos",
+      "secondary_keywords": [
+        "Moderna",
+        "Inversión",
+        "BienesRaíces",
+        "MacroDiario",
+        "Economía"
+      ],
+      "title": "Macro Diario | Mercados suben tras 3 días de pérdidas: Moderna se dispara 176%",
+      "description": "Los mercados estadounidenses subieron tras una caída de 3 días, impulsados por el aumento de compras de deuda del Tesoro. Moderna subió 176% tras reportar resultados positivos. Mira el análisis completo en el canal de Macro Diario.",
+      "hashtags": [
+        "#MercadosEstadosUnidos",
+        "#Moderna",
+        "#Inversión",
+        "#BienesRaíces",
+        "#MacroDiario",
+        "#Economía"
+      ]
+    },
+    {
+      "news_id": 7,
+      "primary_keyword": "Mortgage rates",
+      "secondary_keywords": [
+        "30-year fixed rate",
+        "Bankrate",
+        "inflation",
+        "Fed",
+        "Real Estate"
+      ],
+      "title": "Macro Diario | ¿Qué pasa con los tipos hipotecarios? Bajan a 6.68%",
+      "description": "Los tipos hipotecarios bajaron ligeramente a 6.68% según Bankrate, pero siguen cerca de su nivel anual. La inflación elevada mantiene los costos altos. Mira el análisis completo en el canal de Macro Diario.",
+      "hashtags": [
+        "#MortgageRates",
+        "#Bankrate",
+        "#Inflation",
+        "#Fed",
+        "#RealEstate",
+        "#EconomicNews"
       ]
     }
   ],
   "tiktok": [
     {
       "news_id": 1,
-      "primary_keyword": "Precios del crudo",
+      "primary_keyword": "Precio Oro FOMC",
       "secondary_keywords": [
-        "Estrecho de Ormuz",
-        "Oil Prices",
-        "Geopolítica"
+        "Inversores",
+        "Fed",
+        "Rendimientos Bonos",
+        "Inflación Medio Oriente"
       ],
-      "title": "Precios del crudo DISPARAN: Incertidumbre en el Estrecho de Ormuz",
+      "title": "¡Cuidado! Oro sube tras FOMC",
       "hashtags": [
-        "#PreciosDelCrudo",
-        "#EstrechoDeOrmuz",
-        "#Geopolitica",
-        "#MercadosPetroleros"
+        "#OroFOMC",
+        "#Inversiones",
+        "#Finanzas",
+        "#Fed",
+        "#RendimientosBonos"
       ]
     },
     {
       "news_id": 2,
-      "primary_keyword": "Apple (AAPL)",
+      "primary_keyword": "XRP",
       "secondary_keywords": [
-        "iPhone pricing",
-        "memory costs",
-        "stock downgrade",
-        "Jefferies"
+        "SEC",
+        "Bitcoin",
+        "liquidaciones",
+        "resistencia",
+        "apoyo",
+        "inversores",
+        "regulaciones",
+        "tendencia",
+        "precio",
+        "predicción",
+        "mover",
+        "mercado",
+        "finanzas",
+        "criptomonedas",
+        "inversión",
+        "trading",
+        "análisis",
+        "liquidez",
+        "regulaciones",
+        "inversores",
+        "mercado",
+        "finanzas",
+        "criptomonedas",
+        "inversión",
+        "trading",
+        "análisis"
       ],
-      "title": "Apple (AAPL) Aplasta tras anular iPhone 2027 por costos de memoria",
+      "title": "¡Cuidado! XRP rompe resistencia de $1 tras reglas SEC",
       "hashtags": [
-        "#AppleAAPL",
-        "#iPhonePricing",
-        "#MemoryCosts",
-        "#StockDowngrade",
-        "#Jefferies",
-        "#Macroeconomía"
+        "#XRP",
+        "#SEC",
+        "#Bitcoin",
+        "#Finanzas",
+        "#Criptomonedas",
+        "#Inversión"
       ]
     },
     {
       "news_id": 3,
-      "primary_keyword": "Zeta Global",
+      "primary_keyword": "SpaceX intenta adquirir Cognition AI",
       "secondary_keywords": [
-        "Nvidia",
-        "Reddit",
-        "inteligencia artificial"
+        "valoración de $26B",
+        "Musk en IA",
+        "negociaciones en curso",
+        "SpaceXAI",
+        "Cognition AI"
       ],
-      "title": "Zeta Global lidera la revolución de la IA: ¿Siguiente en la brecha de Nvidia?",
+      "title": "¡Cuidado! SpaceX intenta adquirir Cognition AI valorada en $26B",
       "hashtags": [
-        "#ZetaGlobal",
-        "#Nvidia",
-        "#InteligenciaArtificial",
-        "#Reddit",
-        "#MercadosFinancieros",
-        "#Tecnología"
+        "#SpaceX",
+        "#AprendeAInvertir",
+        "#Finanzas",
+        "#IA",
+        "#Tech",
+        "#Inversión"
       ]
     },
     {
       "news_id": 4,
-      "primary_keyword": "Nvidia",
+      "primary_keyword": "Tesoro EE.UU. duplica compras de bonos",
       "secondary_keywords": [
-        "mercados estadounidenses",
-        "precios petróleo",
-        "Fed",
-        "inflación"
+        "sube oro y Bitcoin",
+        "liquidez en bonos",
+        "tasas de rendimiento",
+        "endeudamiento",
+        "mercados financieros"
       ],
-      "title": "Nvidia Aplasta 3% tras reporte de $500B en IA",
+      "title": "¡Cuidado! Tesoro EE.UU. duplica compras de bonos y sube oro y Bitcoin 5%",
       "hashtags": [
-        "#Nvidia",
+        "#TesoroEEUU",
+        "#AprendeAInvertir",
+        "#Finanzas",
+        "#MercadosFinancieros",
+        "#Bitcoin",
+        "#Oro"
+      ]
+    },
+    {
+      "news_id": 5,
+      "primary_keyword": "diésel",
+      "secondary_keywords": [
+        "inventarios",
+        "escasez",
+        "inflación",
+        "conflictos",
+        "mercados"
+      ],
+      "title": "¡Cuidado! El diésel rompe récord a $100 por barril",
+      "hashtags": [
+        "#Diesel",
+        "#Inflación",
+        "#Finanzas",
+        "#Mercados",
+        "#Energía",
+        "#Crisis"
+      ]
+    },
+    {
+      "news_id": 6,
+      "primary_keyword": "Mercados Estadounidenses",
+      "secondary_keywords": [
+        "Bonos",
+        "Moderna",
+        "Tasas de Interés",
+        "Fed",
+        "Inversores"
+      ],
+      "title": "¡Cuidado! Mercados estadounidenses terminan 3 días de pérdidas",
+      "hashtags": [
         "#MercadosEstadounidenses",
-        "#Petróleo",
+        "#Moderna",
+        "#Finanzas",
+        "#AprendeAInvertir",
+        "#Inversores"
+      ]
+    },
+    {
+      "news_id": 7,
+      "primary_keyword": "tipos hipotecarios",
+      "secondary_keywords": [
+        "tipos de interés",
+        "inflación",
+        "Fed",
+        "crédito inmobiliario"
+      ],
+      "title": "¡Cuidado! Tipos hipotecarios caen pero siguen en niveles altos",
+      "hashtags": [
+        "#TiposHipotecarios",
+        "#Inflación",
         "#Fed",
-        "#Inflación"
+        "#Finanzas",
+        "#CréditoInmobiliario",
+        "#FinanzasPersonales"
       ]
     }
   ]

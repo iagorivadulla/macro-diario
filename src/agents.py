@@ -105,17 +105,9 @@ class ShortSEO(BaseModel):
     hashtags: list[str]
 
 
-class TiktokSEO(BaseModel):
-    news_id: int
-    primary_keyword: str
-    secondary_keywords: list[str]
-    title: str
-    hashtags: list[str]
-
 class SEOFullMetadata(BaseModel):
     episode: EpisodeSEO
     shorts: list[ShortSEO] = Field(default_factory=list)
-    tiktoks: list[TiktokSEO] = Field(default_factory=list)
 
 # ---------------------------------------------------------------------------
 # Base agent
@@ -825,7 +817,7 @@ def script_control_3(script_dict: dict) -> dict:
 
     - datos inventados
     - contradicciones con el resumen
-    - inglés
+    - inglés (debe estar en castellano)
     - errores gramaticales
 
     NO cambies absolutamente nada más.
@@ -849,7 +841,7 @@ def script_control_3(script_dict: dict) -> dict:
 
     - máximo 18 palabras
     - una única frase
-    - esta en castellano
+    - ESTA EN CASTELLANO
     - no explica la siguiente noticia
     - no contiene cifras
     - no contiene porcentajes
@@ -2412,7 +2404,7 @@ def seo_agent_v2(script_dict: dict):
     #-------------------------------------------------------------
 
     system = """
-        Eres un estratega senior de SEO en YouTube y TikTok Growth, especializado en canales de finanzas, tecnología y macroeconomía.
+        Eres un estratega senior de SEO en YouTube especializado en canales de finanzas, tecnología y macroeconomía.
 
         TU OBJETIVO:
         Maximizar el CTR (Click-Through Rate), el posicionamiento en búsquedas (SEO) y la tasa de descubrimiento por recomendación de algoritmo, manteniendo 100% de rigor informativo y honestidad periodística.
@@ -2420,7 +2412,7 @@ def seo_agent_v2(script_dict: dict):
         REGLAS DE ORO DE SEO Y CTR:
         1. IDIOMA: Todo el contenido debe generarse estrictamente en CASTELLANO.
         2. KEYWORDS PRIMARIAS: Deben colocarse lo más a la IZQUIERDA posible en títulos y descripciones (los usuarios y algoritmos leen de izquierda a derecha).
-        3. FRACTURA DE PATRÓN (HOOKS): Usa palabras de impacto y verbos de acción en títulos de Shorts/TikTok ('Dispara', 'Caída', 'Clave', 'Alerta', 'Récord').
+        3. FRACTURA DE PATRÓN (HOOKS): Usa palabras de impacto y verbos de acción en títulos de Shorts ('Dispara', 'Caída', 'Clave', 'Alerta', 'Récord').
         4. SIN CARACTERES PROHIBIDOS: No uses emojis ni comillas. Usa números en lugar de palabras ($500B en lugar de 500 mil millones) para optimizar espacio y legibilidad.
         5. CERO ENGAÑOS: Sé provocativo y atractivo, pero NUNCA inventes o exageres datos que no estén en la noticia.
         """
@@ -2519,33 +2511,8 @@ def seo_agent_v2(script_dict: dict):
         short_video = run_agent(system=system, prompt=short_prompt, model=seo_model, schema=ShortSEO, temperature=seo_temperature)
         shorts_data.append(short_video.model_dump())
 
-        tik_tok_prompt = f"""
-                Genera la metadata para TIKTOK basada en esta noticia:
-                ID: {i["news_id"]} | TÍTULO: {i["title"]} | RESUMEN: {i["summary"]}
 
-                REGLAS DE TÍTULO/CAPTION TIKTOK (MAX 90 CARACTERES):
-                - Debe ser súper directo, coloquial y enfocado en la curiosidad inmediata.
-                - Usa palabras de alta conversión: "Cuidado", "Atención", "Récord", "Inesperado", "Desplome".
-                - No incluyas el prefijo 'Macro Diario' en TikTok para aprovechar todos los caracteres en el hook.
-                - Ejemplo: ¡Ojo si tienes acciones de SpaceX! Esto pasa tras su IPO
-
-                HASHTAGS TIKTOK (4 a 6):
-                - Mezcla del tema específico (#SpaceX) y nicho financiero (#AprendeAInvertir, #Finanzas, #FinanzasPersonales).
-
-                DEVUELVE JSON:
-                {{
-                    "news_id": {i["news_id"]},
-                    "primary_keyword": "",
-                    "secondary_keywords": [],
-                    "title": "",
-                    "hashtags": []
-                }}
-                """
-
-        tik_tok_video = run_agent(system=system, prompt=tik_tok_prompt, model=seo_model, schema=TiktokSEO, temperature=seo_temperature)
-        tik_tok_data.append(tik_tok_video.model_dump())
     full_seo_data['shorts'] = shorts_data
-    full_seo_data['tiktok'] = tik_tok_data
 
     return full_seo_data
 

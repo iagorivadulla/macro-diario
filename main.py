@@ -167,12 +167,16 @@ def flow():
 
     publish(SEO_DICT_PATH)
 
-#9:08
+
 def flow_test():
     with open(SCRIPT_DICT_PATH, "r", encoding="utf-8") as f:
         script_dict = json.load(f)
 
-    produce_shorts()
+    seo = seo_agent_v2(script_dict)
+    with open(SEO_DICT_PATH, "w", encoding="utf-8") as f:
+        seo_dict = json.dump(seo, f, ensure_ascii=False, indent=2, default=str)
+
+    publish(SEO_DICT_PATH)
 
 if __name__ == "__main__":
     flow()
