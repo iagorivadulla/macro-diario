@@ -5,6 +5,7 @@ import textwrap
 from pathlib import Path
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
+import yfinance as yf
 
 # ---------------------------------------------------------------------------
 # Config
@@ -343,6 +344,92 @@ def get_current_image(timeline: list, frame_idx: int):
             return img
     return None
 
+# ------------------------------------------------------------------------
+# Carrousel tickers
+# -------------------------------------------------------------------------
+
+def obtener_texto_mercado() -> str:
+    tickers = {
+        "ORO": "GC=F",
+        "PLATA": "SI=F",
+        "BTC": "BTC-USD",
+        "ETH": "ETH-USD",
+        "WTI": "CL=F",
+        "BRENT": "BZ=F",
+        "GAS NAT.": "NG=F",
+        "S&P 500": "^GSPC",
+        "NASDAQ": "^IXIC",
+        "NIKKEI 225": "^N225",
+        "IBEX 35": "^IBEX",
+        "EUR/USD": "EURUSD=X",
+        "GBP/USD": "GBPUSD=X",
+        "USD/JPY": "USDJPY=X",
+        "NVDA": "NVDA",
+        "AAPL": "AAPL",
+        "MSFT": "MSFT",
+        "AMAZN": "AMAZN",
+        "KO": "KO",
+    }
+    partes = []
+    try:
+        data = yf.Tickers(" ".join(tickers.values()))
+        for nombre, symbol in tickers.items():
+            hist = data.tickers[symbol].history(period="1d")
+            if not hist.empty:
+                precio = hist['Close'].iloc[-1]
+                partes.append(f"{nombre}: ${precio:,.2f}" if "EUR" not in nombre else f"{nombre}: {precio:.4f}")
+    except Exception as e:
+        print(f"[ticker] Error obteniendo precios: {e}")
+
+    return "   •   ".join(partes) + "   •   "
+
+
+def render_market_ticker(frame_bgr: np.ndarray, text_str: str, frame_idx: int, speed: int = 4,
+                         font: ImageFont.FreeTypeFont = None) -> np.ndarray:
+    """
+    Renderiza un carrusel delimitado en una zona específica (X, Y, W, H).
+    """
+    # -----------------------------------------------------------------------
+    # CONFIGURAR AREA
+    # -----------------------------------------------------------------------
+    RECT_X = 0  # Coordenada X donde empieza la caja del carrusel
+    RECT_Y = 99  # Coordenada Y donde empieza la caja
+    RECT_W = 1604  # Ancho total de la caja del carrusel
+    RECT_H = 40  # Alto de la caja
+    # -----------------------------------------------------------------------
+
+    # Convertir frame BGR a PIL RGBA
+    frame_pil = Image.fromarray(frame_bgr[:, :, ::-1]).convert("RGBA")
+
+    # 1. Crear una imagen independiente solo para el carrusel (el tamaño de la ventana)
+    ticker_canvas = Image.new("RGBA", (RECT_W, RECT_H), (0, 0, 0, 0))  # Fondo semitransparente
+    draw = ImageDraw.Draw(ticker_canvas)
+
+    if font is None:
+        font = ImageFont.load_default()
+
+    # Ancho del texto
+    text_bbox = draw.textbbox((0, 0), text_str, font=font)
+    text_w = text_bbox[2] - text_bbox[0]
+
+    if text_w > 0:
+        # La "cabeza" del texto empieza al final de nuestra ventana personalizada (RECT_W)
+        cabeza_x = RECT_W - (frame_idx * speed)
+
+        x_pos = cabeza_x
+        # Descartar bloques que ya salieron por la izquierda del recuadro
+        while x_pos + text_w < 0:
+            x_pos += text_w
+
+        # Dibujar repeticiones dentro de la ventana de ancho RECT_W
+        while x_pos < RECT_W:
+            draw.text((x_pos, 8), text_str, font=font, fill=(255, 215, 0, 255))
+            x_pos += text_w
+
+    # 2. Pegar únicamente el área del carrusel sobre el vídeo principal en la posición elegida
+    frame_pil.paste(ticker_canvas, (RECT_X, RECT_Y), ticker_canvas)
+
+    return np.array(frame_pil.convert("RGB"))[:, :, ::-1]
 
 # ---------------------------------------------------------------------------
 # Renderizado Principal
@@ -390,6 +477,9 @@ def render(
     temp = output.parent / "_presenter_raw.mp4"
     writer = cv2.VideoWriter(str(temp), cv2.VideoWriter_fourcc(*"mp4v"), FPS, (VIDEO_W, VIDEO_H))
 
+    texto_carrusel = obtener_texto_mercado()
+    font_ticker = _cargar_fuente(22)
+
     print(f"\n[render] Generando {n_frames} frames ({n_frames / FPS:.1f}s)...")
     for i in range(n_frames):
         news_img = get_current_image(img_timeline, i) if img_timeline else None
@@ -401,6 +491,9 @@ def render(
         if sub_timeline and font is not None:
             lines = get_current_subtitle_lines(sub_timeline, i)
             frame = render_subtitle(frame, lines, font)
+
+        # Carrousell
+        frame = render_market_ticker(frame, texto_carrusel, frame_idx=i, speed=3, font=font_ticker)
 
         writer.write(frame)
 
