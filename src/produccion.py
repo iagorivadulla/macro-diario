@@ -34,7 +34,7 @@ NEWS_IMAGE_H = 360
 # ---------------------------------------------------------------------------
 # Configuración de Subtítulos
 # ---------------------------------------------------------------------------
-SUB_FONT_SIZE       = 35          # tamaño de fuente en px
+SUB_FONT_SIZE       = 20          # tamaño de fuente en px
 SUB_LINE_HEIGHT     = 54          # espacio entre líneas en px
 SUB_LINES_VISIBLE   = 1           # líneas mostradas a la vez
 SUB_WRAP_WIDTH      = 72          # caracteres por línea antes de hacer wrap
@@ -48,6 +48,7 @@ SUB_SHADOW_OFFSET   = 2           # píxeles de desplazamiento de la sombra
 
 # Fuentes en orden de preferencia (se usa la primera que exista)
 _FONT_CANDIDATES = [
+    str(ROOT / "assets" / "fonts" / "PressStart2P-Regular.ttf"),
     "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
     "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
     "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf",
@@ -367,7 +368,7 @@ def obtener_texto_mercado() -> str:
         "NVDA": "NVDA",
         "AAPL": "AAPL",
         "MSFT": "MSFT",
-        "AMAZN": "AMAZN",
+        "AMZN": "AMZN",
         "KO": "KO",
     }
     partes = []
@@ -393,7 +394,7 @@ def render_market_ticker(frame_bgr: np.ndarray, text_str: str, frame_idx: int, s
     # CONFIGURAR AREA
     # -----------------------------------------------------------------------
     RECT_X = 0  # Coordenada X donde empieza la caja del carrusel
-    RECT_Y = 99  # Coordenada Y donde empieza la caja
+    RECT_Y = 103  # Coordenada Y donde empieza la caja
     RECT_W = 1604  # Ancho total de la caja del carrusel
     RECT_H = 40  # Alto de la caja
     # -----------------------------------------------------------------------
@@ -423,7 +424,7 @@ def render_market_ticker(frame_bgr: np.ndarray, text_str: str, frame_idx: int, s
 
         # Dibujar repeticiones dentro de la ventana de ancho RECT_W
         while x_pos < RECT_W:
-            draw.text((x_pos, 8), text_str, font=font, fill=(255, 215, 0, 255))
+            draw.text((x_pos, 8), text_str, font=font, fill=(255, 215, 0, 255), fontmode="1")
             x_pos += text_w
 
     # 2. Pegar únicamente el área del carrusel sobre el vídeo principal en la posición elegida
@@ -478,7 +479,7 @@ def render(
     writer = cv2.VideoWriter(str(temp), cv2.VideoWriter_fourcc(*"mp4v"), FPS, (VIDEO_W, VIDEO_H))
 
     texto_carrusel = obtener_texto_mercado()
-    font_ticker = _cargar_fuente(22)
+    font_ticker = _cargar_fuente(16)
 
     print(f"\n[render] Generando {n_frames} frames ({n_frames / FPS:.1f}s)...")
     for i in range(n_frames):
