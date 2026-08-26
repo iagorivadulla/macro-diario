@@ -121,6 +121,8 @@ def run_agent(system: str, prompt: str, model: str, schema: BaseModel = None, te
             {"role": "user",   "content": prompt},
         ],
         "options": {"temperature": temperature, "num_ctx": num_ctx},
+        "keep_alive": True,
+        "think": False,
 
     }
     if schema:
@@ -150,6 +152,8 @@ resume_model = "qwen3:8b"
 control_model = "qwen3:8b"
 script_model = "qwen3:8b"
 script_control_model = "qwen3:8b"
+headline_model = "qwen3:8b"
+headline_control_model = "qwen3:8b"
 image_model = "qwen3:8b"
 vision_model = "qwen3-vl:8b"
 seo_model = "qwen3:8b"
@@ -159,6 +163,8 @@ resume_temperature = 0.2
 control_temperature = 0.0
 script_temperature = 0.5
 script_control_temperature = 0.1
+headline_model_temperature = 0.2
+headline_control_model_temperature = 0.0
 image_temperature = 0.6
 vision_temperature = 0.0
 seo_temperature = 0.3
@@ -877,6 +883,99 @@ def script_control_3(script_dict: dict) -> dict:
 
     return script_control_(script_dict)
 
+# --------------------------------------------------------------------------
+# Headline Agent
+# --------------------------------------------------------------------------
+
+def headline_agent(script_dict: dict) -> dict:
+    '''
+    writes the headlines and de sublines
+    for the production wich will show like 5 secs
+    for every new
+    '''
+
+    model = headline_model
+
+    system = """Eres el redactor editorial de MACRO DIARIO, un medio de noticias económicas y financieras.
+
+    Tu función es redactar textos breves para gráficos informativos que aparecen en pantalla durante un vídeo.
+
+    Debes seguir estrictamente las instrucciones específicas de cada tarea.
+
+    El contenido debe ser:
+    - Claro y fácil de entender a primera vista.
+    - Informativo y periodístico.
+    - Directo y natural.
+    - Basado únicamente en la información proporcionada.
+    - En español.
+    - Centrado en el hecho más importante de la noticia.
+
+    Nunca inventes datos, cifras, declaraciones, causas o consecuencias.
+    No utilices clickbait ni exageraciones.
+    Devuelve únicamente el texto solicitado, sin explicaciones ni comillas.
+    """
+
+    for i in script_dict['sections']:
+        if i['type'].startswith("news_"):
+            print("Making headline for " + i['type'])
+            new = i.get("resume", "")
+
+            prompt_headline = f"""Crea el HEADLINE que aparecerá en pantalla durante los primeros 5 segundos de esta noticia.
+
+                                NOTICIA:
+                                {new}
+
+                                Reglas:
+
+                                REGLAS:
+                                - Máximo 4 palabras.
+                                - Debe ser un titular periodístico, no una oración explicativa.
+                                - Debe comunicar inmediatamente el acontecimiento principal.
+                                - Prioriza sujeto + acción cuando sea posible.
+                                - Utiliza palabras concretas y con fuerza informativa.
+                                - Incluye nombres propios, empresas, países o cifras cuando sean relevantes.
+                                - Evita titulares genéricos o vagos.
+                                - No repitas información innecesaria.
+                                - No uses clickbait ni exageraciones.
+                                - No inventes información.
+                                - No termines con un punto.
+                                - Devuelve únicamente el headline, sin comillas ni explicaciones.
+                                """
+
+            i["headline"] = run_agent(system, prompt_headline, model, temperature=headline_model_temperature, num_ctx=4096)
+            headline = i["headline"]
+            print(headline)
+
+            prompt_subhead = f"""Crea el SUBHEADLINE que acompañará al headline de esta noticia.
+
+                                    HEADLINE:
+                                    {headline}
+
+                                    NOTICIA:
+                                    {new}
+
+                                    REGLAS:
+                                    - Máximo 10 palabras.
+                                    - Una sola frase.
+                                    - Debe aportar información nueva respecto al headline.
+                                    - No debe repetir las mismas palabras del headline.
+                                    - No repetir nombre de la empresa o activo, darle continuidad al headline.
+                                    - Aporta el dato, cifra, contexto, lugar, empresa, motivo o consecuencia más relevante.
+                                    - Si existe una cifra especialmente relevante, priorízala.
+                                    - Debe poder entenderse rápidamente al leerlo en pantalla.
+                                    - Lenguaje periodístico, natural y directo.
+                                    - No hagas preguntas.
+                                    - No uses clickbait ni exageraciones.
+                                    - No inventes información.
+                                    - No termines con un punto.
+                                    
+                                    Devuelve únicamente el subheadline.
+                                    """
+            print("Subheadline for " + i['type'])
+            i["subhead"] = run_agent(system, prompt_subhead, model, temperature=headline_model_temperature, num_ctx=4096)
+            print(i["subhead"])
+    return script_dict
+
 # -------------------------------------------------------------------------
 # Images
 # -------------------------------------------------------------------------
@@ -899,9 +998,9 @@ def image_agent_v8(script_dict: dict) -> dict:
         from duckduckgo_search import DDGS
 
     ASSETS_DIR    = Path(__file__).parent.parent / "assets" / "news_images"
-    TARGET        = 3     # imágenes por sección
-    MAX_PER_QUERY = 8      # URLs que se prueban por cada query
-    N_QUERIES     = 3     # queries generadas por sección
+    TARGET        = 5     # imágenes por sección
+    MAX_PER_QUERY = 13      # URLs que se prueban por cada query
+    N_QUERIES     = 9     # queries generadas por sección
     TIMEOUT       = 10
     MIN_WIDTH     = 350
     MIN_HEIGHT    = 250
@@ -1198,7 +1297,7 @@ def image_agent_v9(script_dict: dict, headless: bool = True) -> dict:
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument(f"--window-size={VIEWPORT_W},{VIEWPORT_H}")
-        driver = uc.Chrome(options=options, version_main=150)
+        driver = uc.Chrome(options=options, version_main=152)
         driver.set_page_load_timeout(25)
         return driver
 
@@ -1780,8 +1879,7 @@ def seo_agent_v2(script_dict: dict):
         3. TÍTULO (MAX 90 CARACTERES):
            - Debe comenzar exactamente con: Macro Diario | {date}:
            - La keyword principal y la entidad relevante deben ir inmediatamente después del prefijo.
-           - Debe plantear una consecuencia o pregunta clave para el inversor.
-           - Ejemplo: Macro Diario | {date}: ¿Por qué cae Nvidia tras el anuncio de $500B?
+           - Debe plantear una consecuencia o evento clave para el inversor.
            - El total del título no debe ser superior a 90 caracteres contando los espacios.
 
         4. DESCRIPCIÓN (OPTIMIZADA PARA KEY MOMENTS Y SEO):
