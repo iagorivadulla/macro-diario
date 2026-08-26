@@ -9,7 +9,8 @@ from src.agents import (
     script_control_3,
     broadcaster,
     image_agent_v9, image_agent_v8,
-    seo_agent_v2
+    seo_agent_v2,
+    headline_agent
 )
 from src.scraper import get_articles
 from src.produccion import producir
@@ -60,11 +61,14 @@ def flow():
     # ------------------------------------------------------------------
     # 0. Delete old videos
     # ------------------------------------------------------------------
+
     print('Deleting old videos...')
     delete_videos()
+
     # ------------------------------------------------------------------
     # 1. Get and filter the news
     # ------------------------------------------------------------------
+
     news     = read_feeds()
 
     selected = filter_agent(news)
@@ -73,9 +77,11 @@ def flow():
 
     articles = get_articles(selected)
     print(articles)
+
     # ------------------------------------------------------------------
     # 2. Resume and quality test
     # ------------------------------------------------------------------
+
     resumes          = resume_agent(articles)
     print(f'Resumes {len(resumes)} articles')
     print(resumes)
@@ -104,6 +110,7 @@ def flow():
     # ------------------------------------------------------------------
     # 3. Build and revise the script
     # ------------------------------------------------------------------
+
     script_dict = script_agent_2(passed)
     script_dict = script_control_3(script_dict)
 
@@ -114,28 +121,41 @@ def flow():
         json.dump(script_dict, f, ensure_ascii=False, indent=2, default=str)
     print(f"script_dict guardado en {SCRIPT_DICT_PATH}")
 
+    # ----------------------------------------------------------------
+    #
+    # ----------------------------------------------------------------
+
+    script_dict = headline_agent(script_dict)
+
+    with open(SCRIPT_DICT_PATH, "w", encoding="utf-8") as f:
+        json.dump(script_dict, f, ensure_ascii=False, indent=2, default=str)
+    print(f"script_dict guardado en {SCRIPT_DICT_PATH}")
+
     # ------------------------------------------------------------------
     # 4. Search and download images
     # ------------------------------------------------------------------
+
     script_dict = image_agent_v9(script_dict)
     script_dict = image_agent_v8(script_dict)
 
     # ------------------------------------------------------------------
     # 5. Create the voice path and save duration in the script
     # ------------------------------------------------------------------
+
     broadcaster(script_dict)
 
     # ------------------------------------------------------------------
     # 6. Saves the script
     # ------------------------------------------------------------------
+
     with open(SCRIPT_DICT_PATH, "w", encoding="utf-8") as f:
-        # Convertimos Paths a strings para que json no se queje
         json.dump(script_dict, f, ensure_ascii=False, indent=2, default=str)
     print(f"script_dict guardado en {SCRIPT_DICT_PATH}")
 
     # ------------------------------------------------------------------
     # 7. Build the video and shorts
     # ------------------------------------------------------------------
+
     producir(
         script_dict=script_dict,
         output=OUTPUT_VIDEO,
@@ -162,7 +182,7 @@ def flow():
     delete_audios()
 
     # --------------------------------------------------------------
-    # 9.Youtube Auto Publish
+    # 10.Youtube Auto Publish
     #---------------------------------------------------------------
 
     publish(SEO_DICT_PATH)
@@ -172,11 +192,11 @@ def flow_test():
     with open(SCRIPT_DICT_PATH, "r", encoding="utf-8") as f:
         script_dict = json.load(f)
 
-    seo = seo_agent_v2(script_dict)
-    with open(SEO_DICT_PATH, "w", encoding="utf-8") as f:
-        seo_dict = json.dump(seo, f, ensure_ascii=False, indent=2, default=str)
+    producir(
+        script_dict=script_dict,
+        output=OUTPUT_VIDEO,
+        ffmpeg=FFMPEG,)
 
-    publish(SEO_DICT_PATH)
 
 if __name__ == "__main__":
     flow()

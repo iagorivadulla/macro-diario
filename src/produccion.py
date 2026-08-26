@@ -445,50 +445,70 @@ def render_market_ticker(frame_bgr: np.ndarray, text_str: str, frame_idx: int, s
     return np.array(frame_pil.convert("RGB"))[:, :, ::-1]
 
 # ---------------------------------------------------------------------------
-# Banners
+# Configuración Titular y Subtitular (Lower Third)
 # ---------------------------------------------------------------------------
-
 HEADLINE_BAR_PATH = ROOT / "assets" / "background" / "barra_titular.png"
 SUBHEADLINE_BAR_PATH = ROOT / "assets" / "background" / "barra_subtitular.png"
 
-
-# Duración en frames del deslizamiento (Entrada / Salida)
-ANIM_FRAMES = 15
-
-HEADLINE_BAR_H = 65
-SUBHEADLINE_BAR_H = 45
-
-# Margen a la izquierda (icono/hexágono de la barra) y margen a la derecha
-PADDING_LEFT = 95
-PADDING_RIGHT = 40
-
+# Posiciones de destino fijas en pantalla (X, Y)
 HEADLINE_TARGET_X = 40
 HEADLINE_TARGET_Y = 665
 
-SUBHEADLINE_TARGET_X = 40
+SUBHEADLINE_TARGET_X = 90
 SUBHEADLINE_TARGET_Y = 735
 
+# Duración de animación ( frames )
+ANIM_FRAMES = 15
 
-def _obtener_barra_dinamica(bar_base_path: Path, text: str, font: ImageFont.FreeTypeFont, target_h: int) -> Image.Image | None:
-    """Calcula el ancho del texto y escala la barra a su medida exacta + padding."""
-    if not text or not bar_base_path.exists():
+# Cache para no regenerar el sprite en cada frame si no cambia
+_SPRITE_CACHE = {}
+
+
+def _generar_sprite_compuesto(
+    bar_path: Path,
+    texto: str,
+    font: ImageFont.FreeTypeFont,
+    target_h: int,
+    pad_left: int = 180,
+    pad_right: int = 120,
+    text_color: tuple = (255, 255, 255, 255)
+) -> Image.Image | None:
+    if not texto or not bar_path.exists():
         return None
 
-    # 1. Medir el ancho exacto del texto
-    dummy_img = Image.new("RGBA", (1, 1))
-    draw = ImageDraw.Draw(dummy_img)
-    bbox = draw.textbbox((0, 0), text, font=font)
+    # 1. Medir texto
+    dummy = Image.new("RGBA", (1, 1))
+    draw_dummy = ImageDraw.Draw(dummy)
+    bbox = draw_dummy.textbbox((0, 0), texto, font=font)
     text_w = bbox[2] - bbox[0]
 
-    # 2. Ancho total dinámico para la barra
-    total_w = text_w + PADDING_LEFT + PADDING_RIGHT
+    # Ancho total del sprite
+    total_w = pad_left + text_w + pad_right
 
-    # 3. Escalar asset base al ancho calculado
     try:
-        img = Image.open(bar_base_path).convert("RGBA")
-        return img.resize((total_w, target_h), Image.LANCZOS)
+        # 2. Cargar imagen y ELIMINAR bordes transparentes sobrantes (Autocrop)
+        bar_img = Image.open(bar_path).convert("RGBA")
+        alpha_bbox = bar_img.getbbox()  # Detecta dónde hay píxeles visibles
+        if alpha_bbox:
+            bar_img = bar_img.crop(alpha_bbox)
+
+        # 3. Escalar asset limpio al tamaño exacto del texto
+        bar_img = bar_img.resize((total_w, target_h), Image.LANCZOS)
+
+        # 4. Estampar texto
+        draw_bar = ImageDraw.Draw(bar_img)
+        draw_bar.text(
+            (pad_left, (target_h // 2) - 2),
+            texto,
+            font=font,
+            fill=text_color,
+            anchor="lm"
+        )
+
+        return bar_img
+
     except Exception as e:
-        print(f"[lower_third] Error al escalar barra dinámica: {e}")
+        print(f"[lower_third] Error generando sprite compuesto: {e}")
         return None
 
 
@@ -507,14 +527,23 @@ def render_lower_third(
     if not headline and not subheadline:
         return frame_bgr
 
-    # Generar la barra escalada exactamente a la medida del texto de esta sección
-    head_bar_img = _obtener_barra_dinamica(head_bar_path, headline, font_head, HEADLINE_BAR_H)
-    sub_bar_img = _obtener_barra_dinamica(sub_bar_path, subheadline, font_sub, SUBHEADLINE_BAR_H)
+    # Generar o recuperar de caché los sprites ya montados (Barra + Texto)
+    cache_key = (headline, subheadline)
+    if cache_key not in _SPRITE_CACHE:
+        head_sprite = _generar_sprite_compuesto(
+            head_bar_path, headline, font_head, target_h=62, pad_left=190, pad_right=140
+        )
+        sub_sprite = _generar_sprite_compuesto(
+            sub_bar_path, subheadline, font_sub, target_h=42, pad_left=25, pad_right=90
+        )
+        _SPRITE_CACHE[cache_key] = (head_sprite, sub_sprite)
+    else:
+        head_sprite, sub_sprite = _SPRITE_CACHE[cache_key]
 
     sec_len = sec_end_frame - sec_start_frame
     local_frame = frame_idx - sec_start_frame
 
-    # Animación Smooth (Entrada / Pausa / Salida)
+    # Cálculo del desplazamiento de la animación
     if local_frame < ANIM_FRAMES:
         progress = local_frame / float(ANIM_FRAMES)
     elif local_frame >= sec_len - ANIM_FRAMES:
@@ -523,46 +552,24 @@ def render_lower_third(
         progress = 1.0
 
     progress = max(0.0, min(1.0, progress))
-    smooth_p = np.sin(progress * np.pi / 2)
+    smooth_p = np.sin(progress * np.pi / 2)  # Easing
 
+    # Convertir frame para pegar los sprites
     frame_pil = Image.fromarray(frame_bgr[:, :, ::-1]).convert("RGBA")
-    draw = ImageDraw.Draw(frame_pil)
 
-    # --- TITULAR ---
-    if headline and head_bar_img:
-        w_bar = head_bar_img.width
-        start_x = -w_bar
+    # --- 1. Mover y pegar Titular ---
+    if head_sprite:
+        w_head = head_sprite.width
+        start_x = -w_head
         curr_x = int(start_x + (HEADLINE_TARGET_X - start_x) * smooth_p)
+        frame_pil.paste(head_sprite, (curr_x, HEADLINE_TARGET_Y), head_sprite)
 
-        # Pegar barra dinámica
-        frame_pil.paste(head_bar_img, (curr_x, HEADLINE_TARGET_Y), head_bar_img)
-
-        # Imprimir texto perfectamente alineado en su barra
-        draw.text(
-            (curr_x + PADDING_LEFT, HEADLINE_TARGET_Y + (HEADLINE_BAR_H // 2)),
-            headline,
-            font=font_head,
-            fill=(255, 255, 255, 255),
-            anchor="lm"
-        )
-
-    # --- SUBTITULAR ---
-    if subheadline and sub_bar_img:
-        w_sub = sub_bar_img.width
+    # --- 2. Mover y pegar Subtitular ---
+    if sub_sprite:
+        w_sub = sub_sprite.width
         start_sub_x = -w_sub
         curr_sub_x = int(start_sub_x + (SUBHEADLINE_TARGET_X - start_sub_x) * smooth_p)
-
-        # Pegar barra dinámica
-        frame_pil.paste(sub_bar_img, (curr_sub_x, SUBHEADLINE_TARGET_Y), sub_bar_img)
-
-        # Imprimir texto perfectamente alineado en su barra
-        draw.text(
-            (curr_sub_x + PADDING_LEFT, SUBHEADLINE_TARGET_Y + (SUBHEADLINE_BAR_H // 2)),
-            subheadline,
-            font=font_sub,
-            fill=(230, 230, 230, 255),
-            anchor="lm"
-        )
+        frame_pil.paste(sub_sprite, (curr_sub_x, SUBHEADLINE_TARGET_Y), sub_sprite)
 
     return np.array(frame_pil.convert("RGB"))[:, :, ::-1]
 

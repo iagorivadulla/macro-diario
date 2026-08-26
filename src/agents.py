@@ -928,7 +928,8 @@ def headline_agent(script_dict: dict) -> dict:
                                 Reglas:
 
                                 REGLAS:
-                                - Máximo 4 palabras.
+                                - MAXIMO CUATRO PALABRAS.
+                                - PROHIBIDO MAS DE 4 PALABRAS.
                                 - Debe ser un titular periodístico, no una oración explicativa.
                                 - Debe comunicar inmediatamente el acontecimiento principal.
                                 - Prioriza sujeto + acción cuando sea posible.
