@@ -41,7 +41,7 @@ SUB_WRAP_WIDTH      = 72          # caracteres por línea antes de hacer wrap
 SUB_PADDING_X       = 50          # margen horizontal interior de la banda
 SUB_PADDING_Y       = 18          # margen vertical interior de la banda
 SUB_BG_ALPHA        = 175         # opacidad del fondo (0=transparente, 255=sólido)
-SUB_Y_BOTTOM_MARGIN = 30          # distancia al borde inferior del vídeo
+SUB_Y_BOTTOM_MARGIN = 20          # distancia al borde inferior del vídeo
 SUB_COLOR           = (255, 255, 255, 255)   # blanco opaco
 SUB_SHADOW_COLOR    = (0, 0, 0, 210)         # sombra oscura
 SUB_SHADOW_OFFSET   = 2           # píxeles de desplazamiento de la sombra
@@ -445,6 +445,151 @@ def render_market_ticker(frame_bgr: np.ndarray, text_str: str, frame_idx: int, s
     return np.array(frame_pil.convert("RGB"))[:, :, ::-1]
 
 # ---------------------------------------------------------------------------
+# Banners
+# ---------------------------------------------------------------------------
+
+HEADLINE_BAR_PATH = ROOT / "assets" / "background" / "barra_titular.png"
+SUBHEADLINE_BAR_PATH = ROOT / "assets" / "background" / "barra_subtitular.png"
+
+
+# Duración en frames del deslizamiento (Entrada / Salida)
+ANIM_FRAMES = 15
+
+HEADLINE_BAR_H = 65
+SUBHEADLINE_BAR_H = 45
+
+# Margen a la izquierda (icono/hexágono de la barra) y margen a la derecha
+PADDING_LEFT = 95
+PADDING_RIGHT = 40
+
+HEADLINE_TARGET_X = 40
+HEADLINE_TARGET_Y = 665
+
+SUBHEADLINE_TARGET_X = 40
+SUBHEADLINE_TARGET_Y = 735
+
+
+def _obtener_barra_dinamica(bar_base_path: Path, text: str, font: ImageFont.FreeTypeFont, target_h: int) -> Image.Image | None:
+    """Calcula el ancho del texto y escala la barra a su medida exacta + padding."""
+    if not text or not bar_base_path.exists():
+        return None
+
+    # 1. Medir el ancho exacto del texto
+    dummy_img = Image.new("RGBA", (1, 1))
+    draw = ImageDraw.Draw(dummy_img)
+    bbox = draw.textbbox((0, 0), text, font=font)
+    text_w = bbox[2] - bbox[0]
+
+    # 2. Ancho total dinámico para la barra
+    total_w = text_w + PADDING_LEFT + PADDING_RIGHT
+
+    # 3. Escalar asset base al ancho calculado
+    try:
+        img = Image.open(bar_base_path).convert("RGBA")
+        return img.resize((total_w, target_h), Image.LANCZOS)
+    except Exception as e:
+        print(f"[lower_third] Error al escalar barra dinámica: {e}")
+        return None
+
+
+def render_lower_third(
+    frame_bgr: np.ndarray,
+    headline: str,
+    subheadline: str,
+    frame_idx: int,
+    sec_start_frame: int,
+    sec_end_frame: int,
+    font_head: ImageFont.FreeTypeFont,
+    font_sub: ImageFont.FreeTypeFont,
+    head_bar_path: Path = HEADLINE_BAR_PATH,
+    sub_bar_path: Path = SUBHEADLINE_BAR_PATH
+) -> np.ndarray:
+    if not headline and not subheadline:
+        return frame_bgr
+
+    # Generar la barra escalada exactamente a la medida del texto de esta sección
+    head_bar_img = _obtener_barra_dinamica(head_bar_path, headline, font_head, HEADLINE_BAR_H)
+    sub_bar_img = _obtener_barra_dinamica(sub_bar_path, subheadline, font_sub, SUBHEADLINE_BAR_H)
+
+    sec_len = sec_end_frame - sec_start_frame
+    local_frame = frame_idx - sec_start_frame
+
+    # Animación Smooth (Entrada / Pausa / Salida)
+    if local_frame < ANIM_FRAMES:
+        progress = local_frame / float(ANIM_FRAMES)
+    elif local_frame >= sec_len - ANIM_FRAMES:
+        progress = (sec_end_frame - 1 - frame_idx) / float(ANIM_FRAMES)
+    else:
+        progress = 1.0
+
+    progress = max(0.0, min(1.0, progress))
+    smooth_p = np.sin(progress * np.pi / 2)
+
+    frame_pil = Image.fromarray(frame_bgr[:, :, ::-1]).convert("RGBA")
+    draw = ImageDraw.Draw(frame_pil)
+
+    # --- TITULAR ---
+    if headline and head_bar_img:
+        w_bar = head_bar_img.width
+        start_x = -w_bar
+        curr_x = int(start_x + (HEADLINE_TARGET_X - start_x) * smooth_p)
+
+        # Pegar barra dinámica
+        frame_pil.paste(head_bar_img, (curr_x, HEADLINE_TARGET_Y), head_bar_img)
+
+        # Imprimir texto perfectamente alineado en su barra
+        draw.text(
+            (curr_x + PADDING_LEFT, HEADLINE_TARGET_Y + (HEADLINE_BAR_H // 2)),
+            headline,
+            font=font_head,
+            fill=(255, 255, 255, 255),
+            anchor="lm"
+        )
+
+    # --- SUBTITULAR ---
+    if subheadline and sub_bar_img:
+        w_sub = sub_bar_img.width
+        start_sub_x = -w_sub
+        curr_sub_x = int(start_sub_x + (SUBHEADLINE_TARGET_X - start_sub_x) * smooth_p)
+
+        # Pegar barra dinámica
+        frame_pil.paste(sub_bar_img, (curr_sub_x, SUBHEADLINE_TARGET_Y), sub_bar_img)
+
+        # Imprimir texto perfectamente alineado en su barra
+        draw.text(
+            (curr_sub_x + PADDING_LEFT, SUBHEADLINE_TARGET_Y + (SUBHEADLINE_BAR_H // 2)),
+            subheadline,
+            font=font_sub,
+            fill=(230, 230, 230, 255),
+            anchor="lm"
+        )
+
+    return np.array(frame_pil.convert("RGB"))[:, :, ::-1]
+
+def build_headline_timeline(script_dict: dict, fps: int) -> list:
+    """
+    Estructura la línea de tiempo con headlines y subheadlines.
+    Devuelve: list[(start_frame, end_frame, headline_str, subheadline_str)]
+    """
+    timeline = []
+    cursor = 0
+
+    for section in script_dict.get("sections", []):
+        duration = section.get("audio_duration", 0.0)
+        sec_frames = max(1, int(round(duration * fps)))
+
+        head = section.get("headline", "").strip()
+        subhead = section.get("subhead", "").strip()
+
+        timeline.append((cursor, cursor + sec_frames, head, subhead))
+        cursor += sec_frames
+
+    return timeline
+
+
+
+
+# ---------------------------------------------------------------------------
 # Renderizado Principal
 # ---------------------------------------------------------------------------
 
@@ -490,8 +635,17 @@ def render(
     temp = output.parent / "_presenter_raw.mp4"
     writer = cv2.VideoWriter(str(temp), cv2.VideoWriter_fourcc(*"mp4v"), FPS, (VIDEO_W, VIDEO_H))
 
+    #load prices carrousel
     texto_carrusel = obtener_texto_mercado()
     font_ticker = _cargar_fuente(20)
+
+    #loads the headlines and subheadlines
+
+    font_head = _cargar_fuente(28)
+    font_sub = _cargar_fuente(20)
+
+    headline_timeline = build_headline_timeline(script_dict, FPS) if script_dict else []
+
 
     print(f"\n[render] Generando {n_frames} frames ({n_frames / FPS:.1f}s)...")
     for i in range(n_frames):
@@ -499,6 +653,16 @@ def render(
 
         # Frame base (BGR)
         frame = componer_frame(body, eyes[ojo_seq[i]], mouths[rms_to_mouth(rms[i])], (VIDEO_W, VIDEO_H), news_img)
+
+        #headlines
+        if headline_timeline:
+            for start_f, end_f, h_text, sub_text in headline_timeline:
+                if start_f <= i < end_f:
+                    frame = render_lower_third(
+                        frame, h_text, sub_text, i, start_f, end_f,
+                        font_head, font_sub, HEADLINE_BAR_PATH, SUBHEADLINE_BAR_PATH
+                    )
+                    break
 
         # Subtítulos encima del frame
         if sub_timeline and font is not None:
