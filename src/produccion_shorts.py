@@ -313,6 +313,13 @@ def get_current_image(timeline: list, frame_idx: int):
 
 def obtener_texto_mercado() -> str:
     tickers = {
+        "S&P 500": "^GSPC",
+        "NASDAQ": "^IXIC",
+        "NIKKEI 225": "^N225",
+        "IBEX 35": "^IBEX",
+        "EUR/USD": "EURUSD=X",
+        "GBP/USD": "GBPUSD=X",
+        "JPY/USD": "JPYUSD=X",
         "ORO": "GC=F",
         "PLATA": "SI=F",
         "BTC": "BTC-USD",
@@ -320,13 +327,6 @@ def obtener_texto_mercado() -> str:
         "WTI": "CL=F",
         "BRENT": "BZ=F",
         "GAS NAT.": "NG=F",
-        "S&P 500": "^GSPC",
-        "NASDAQ": "^IXIC",
-        "NIKKEI 225": "^N225",
-        "IBEX 35": "^IBEX",
-        "EUR/USD": "EURUSD=X",
-        "GBP/USD": "GBPUSD=X",
-        "USD/JPY": "USDJPY=X",
         "NVDA": "NVDA",
         "AAPL": "AAPL",
         "MSFT": "MSFT",
@@ -339,8 +339,21 @@ def obtener_texto_mercado() -> str:
         for nombre, symbol in tickers.items():
             hist = data.tickers[symbol].history(period="1d")
             if not hist.empty:
+
                 precio = hist['Close'].iloc[-1]
-                partes.append(f"{nombre}: ${precio:,.2f}" if "EUR" not in nombre else f"{nombre}: {precio:.4f}")
+
+                if any(moneda in nombre for moneda in ("EUR", "GBP", "JPY")):
+                    partes.append(f"{nombre}: {precio:,.4f}")
+
+                elif "NIKKEI" in nombre:
+                    partes.append(f"{nombre}: ¥{precio:,.2f}")
+
+                elif "IBEX" in nombre:
+                    partes.append(f"{nombre}: €{precio:,.2f}")
+
+                else:
+                    partes.append(f"{nombre}: ${precio:,.2f}")
+
     except Exception as e:
         print(f"[ticker] Error obteniendo precios: {e}")
 
@@ -423,7 +436,7 @@ def render(
     writer = cv2.VideoWriter(str(temp), cv2.VideoWriter_fourcc(*"mp4v"), FPS, (VIDEO_W, VIDEO_H))
 
     texto_carrusel = obtener_texto_mercado()
-    font_ticker = _cargar_fuente(16)
+    font_ticker = _cargar_fuente(20)
 
     print(f"\n[render] Generando {n_frames} frames ({n_frames / FPS:.1f}s)...")
     for i in range(n_frames):
