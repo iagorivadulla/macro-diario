@@ -113,7 +113,7 @@ class SEOFullMetadata(BaseModel):
 # Base agent
 # ---------------------------------------------------------------------------
 
-def run_agent(system: str, prompt: str, model: str, schema: BaseModel = None, temperature: float = 0.7, num_ctx: int = 6144) -> dict:
+def run_agent(system: str, prompt: str, model: str, schema: BaseModel = None, think: bool = False, temperature: float = 0.7, num_ctx: int = 6144) -> dict:
     kwargs = {
         "model": model,
         "messages": [
@@ -122,7 +122,7 @@ def run_agent(system: str, prompt: str, model: str, schema: BaseModel = None, te
         ],
         "options": {"temperature": temperature, "num_ctx": num_ctx},
         "keep_alive": True,
-        "think": False,
+        "think": think,
 
     }
     if schema:
@@ -418,26 +418,24 @@ def script_agent_2(news: list) -> dict:
 
     # --- 1. INTRO ---
     intro_prompt = (
-        f"Escribe la apertura del episodio de hoy.\n\n"
+        f"Escribe la apertura completa del episodio de hoy.\n\n"
 
-        f"La fecha de hoy es exactamente: {fecha_exacta}.\n"
-        "Comienza mencionando esa fecha de forma completamente natural.\n\n"
+        f"La fecha de hoy es exactamente: {fecha_exacta}.\n\n"
 
-        "Después presenta únicamente los dos o tres temas más importantes del día como titulares breves que despierten curiosidad.\n"
-        "No desarrolles todavía ninguna noticia.\n"
-        "No reveles cifras.\n"
-        "No adelantes conclusiones.\n\n"
+        "Sigue ESTRICTAMENTE este esquema paso a paso en un solo texto fluido:\n"
+        "1. HOOK DE IMPACTO: Una frase potente sobre el evento financiero o geopolítico más tenso de hoy. (Ejemplo: 'Los mercados aguantan la respiración ante una nueva escalada en el Golfo Pérsico y un movimiento inesperado en las materias primas.')\n"
+        "2. SALUDO Y FECHA: 'Bienvenidos a Macro Diario, hoy es {fecha_exacta}.'\n IMPORTANTE DE INCLUIR SI O SI"
+        "3. AVANCE DE TITULARES: Menciona en 2 o 3 frases dinámicas las noticias principales de la lista (quiénes son los protagonistas y qué está en juego hoy, sin revelar cifras exactas).\n"
+        "4. CIERRE DE INTRO: Una frase final como: 'Analizamos las claves de la jornada y qué deberías vigilar en tu cartera. Comenzamos.'\n\n"
 
-        "Incluye exactamente esta frase:\n"
-        "'Bienvenidos a Macro Diario.'\n\n"
+        "REGLAS OBLIGATORIAS:\n"
+        "- NO hagas el texto de menos de 60 palabras.\n"
+        "- No uses etiquetas como '1.', 'HOOK:', 'Paso 1:'. Escribe el texto continuo para ser leído en voz alta.\n"
+        "- Usa los titulares reales proporcionados a continuación para construir el avance.\n\n"
 
-        "Finaliza con una única frase que conecte de forma natural con la primera noticia.\n\n"
-
-        "Objetivo: conseguir que el espectador quiera seguir escuchando.\n\n"
-
-        f"Noticias disponibles:\n{headlines}"
+        f"Noticias de hoy para incluir en el avance:\n{headlines}"
     )
-    intro_text = run_agent(system, intro_prompt, model, temperature=0)
+    intro_text = run_agent(system, intro_prompt, model, think= True ,temperature=0)
 
     script_estructura["sections"].append({
         "type": "intro",
@@ -484,60 +482,42 @@ def script_agent_2(news: list) -> dict:
         short_prompt = (
             "Escribe el guion de un YouTube Short basado exclusivamente en la noticia proporcionada.\n\n"
 
+            f"Titular:\n{title}\n\n"
+            f"Resumen:\n{resume}\n\n"
 
-        f"Titular:\n{title}\n\n"
-        f"Resumen:\n{resume}\n\n"
+            "IMPORTANTE: Este texto NO debe ser una versión resumida ni una copia del bloque principal del noticiero. "
+            "Debe estar escrito desde cero con un ritmo rápido, directo y enfocado a la máxima retención en verticale.\n\n"
 
-        "IMPORTANTE: Este texto NO debe ser una versión resumida ni una copia del bloque principal del noticiero. "
-        "Debe estar escrito desde cero y tener una estructura, ritmo y enfoque propios de un YouTube Short.\n\n"
+            "ESTRUCTURA OBLIGATORIA DEL SHORT:\n"
+            "1. HOOK INICIAL (0-3 seg): Empieza con una frase rompedora que despierte curiosidad, duda o impacto inmediato. "
+            "PROHIBIDO empezar diciendo 'Hoy...', 'Esta noticia...', 'En este vídeo...' o leyendo el titular. "
+            "El espectador debe engancharse desde la primera palabra.\n\n"
 
-        "OBJETIVO:\n"
-        "Captar la atención durante los primeros segundos y conseguir que el espectador quiera seguir viendo el vídeo hasta el final.\n\n"
+            "2. DESARROLLO (3-30 seg): Cuenta el hecho clave y las cifras más potentes de forma ultra sintética. "
+            "Usa frases cortas y lenguaje directo. Cíñete 100% a la información del resumen.\n\n"
 
-        "ESTRUCTURA:\n"
-        "1. HOOK INICIAL: Empieza con una frase muy potente que genere curiosidad, sorpresa, tensión o interés inmediato. "
-        "No empieces diciendo simplemente el titular ni con fórmulas como 'Hoy...', 'Esta noticia...' o 'En esta noticia...'. "
-        "El espectador debe sentir desde la primera frase que está a punto de descubrir algo importante.\n\n"
+            "3. IMPACTO O CONSECUENCIA: Explica en una sola frase por qué este dato es relevante para el mercado o el espectador.\n\n"
 
-        "2. DESARROLLO: Explica rápidamente qué ha ocurrido utilizando únicamente la información del resumen. "
-        "Prioriza los datos y hechos más interesantes. Mantén frases cortas, dinámicas y fáciles de escuchar.\n\n"
+            "4. CTA Y CIERRE (Últimos 5 seg): Termina combinando estos tres elementos de forma fluida:\n"
+            "   a) Una pregunta directa sobre el tema para que el espectador deje su opinión en los comentarios.\n"
+            "   b) Una llamada a suscribirse a 'Macro Diario' para no perderse la actualidad económica.\n"
+            "   c) Indicar que el análisis completo está enlazado directamente en el vídeo relacionado del Short.\n"
+            "   *PROHIBIDO usar la frase robótica 'Esto fue Macro Diario Shorts'. Debe sonar totalmente natural.*\n\n"
 
-        "3. IMPORTANCIA: Explica por qué este hecho merece atención. "
-        "Si existen consecuencias mencionadas explícitamente en el resumen, intégralas de forma clara. "
-        "No inventes consecuencias ni contexto adicional.\n\n"
+            "REGLAS INQUEBRANTABLES:\n"
+            "- CERO ALUCINACIONES: Utiliza exclusivamente la información del titular y resumen.\n"
+            "- No escribas etiquetas como 'HOOK:', 'DESARROLLO:' o 'CTA:'. Devuelve solo el texto continuo para ser leído.\n"
+            "- Todos los números deben escribirse con palabras (ej. 'diez millones', 'tres por ciento').\n"
+            "- Tono dinámico, periodístico y conversacional.\n\n"
 
-        "4. CIERRE: Termina dejando una última idea que refuerce la importancia de la noticia o despierte curiosidad, "
-        "sin inventar información ni utilizar preguntas cuya respuesta no esté en el material proporcionado.\n\n"
+            "LONGITUD: Entre 75 y 100 palabras en total.\n\n"
 
-        "5. CTA FINAL: Termina exactamente con una frase equivalente a: "
-        "'Esto fue Macro Diario Shorts. El vídeo completo está en el canal de YouTube.' "
-        "Puedes adaptar ligeramente la redacción para que suene natural al ser narrada, "
-        "pero debe mencionar obligatoriamente 'Macro Diario Shorts' y que el vídeo completo está en el canal de YouTube.\n\n"
-
-        "REGLAS:\n"
-        "- CERO ALUCINACIONES. Utiliza exclusivamente la información proporcionada en el titular y resumen.\n"
-        "- No añadas nombres, cifras, empresas, cargos, fechas o consecuencias que no aparezcan en el material.\n"
-        "- No copies frases del guion principal.\n"
-        "- No repitas literalmente el titular como primera frase.\n"
-        "- No escribas encabezados ni etiquetas como 'HOOK', 'DESARROLLO' o 'CIERRE'.\n"
-        "- No escribas listas.\n"
-        "- Todos los números deben escribirse con palabras.\n"
-        "- El texto debe sonar natural al ser leído por un presentador.\n"
-        "- Utiliza un ritmo más rápido y directo que el noticiero completo.\n"
-        "- Evita introducciones genéricas.\n"
-        "- Evita frases vacías como 'vamos a hablar de', 'quédate hasta el final' o 'no te lo vas a creer'.\n"
-        "- El hook debe estar relacionado directamente con el hecho real de la noticia.\n"
-        "- No exageres ni utilices clickbait que contradiga la información disponible.\n\n"
-
-        "LONGITUD:\n"
-        "Entre setenta y ciento diez palabras aproximadamente, incluyendo la llamada a la acción final.\n\n"
-
-        "Devuelve únicamente el texto final que será leído en voz alta."
+            "Devuelve únicamente el texto final listo para la locución."
         )
 
 
-        block_text = run_agent(system, block_prompt, model, temperature=script_temperature)
-        short_text = run_agent(system, short_prompt, model, temperature=script_temperature)
+        block_text = run_agent(system, block_prompt, model, think=True, temperature=script_temperature)
+        short_text = run_agent(system, short_prompt, model, think=True , temperature=script_temperature)
 
         script_estructura["sections"].append({
             "type": f"news_{idx + 1}",
@@ -575,7 +555,7 @@ def script_agent_2(news: list) -> dict:
                 "Mas adelante corto por codigo a 18 palabras"
             )
 
-            transition_text = run_agent(system, transition_prompt, model, temperature=script_temperature)
+            transition_text = run_agent(system, transition_prompt, model, think=True , temperature=script_temperature)
 
             words = transition_text.split()
             if len(words) > 18:
@@ -592,13 +572,14 @@ def script_agent_2(news: list) -> dict:
     outro_prompt = (
         "Escribe el cierre del episodio.\n\n"
 
-        "No repitas ninguna noticia.\n"
-        "Despide el programa de forma natural.\n"
-        "Invita al espectador a volver mañana para conocer las noticias económicas más importantes del día.\n"
-        "Mantén un tono cercano y profesional.\n"
-        "Máximo cuatro líneas."
+        "REGLAS DEL CIERRE:\n"
+        "1. Haz una pregunta abierta al espectador sobre el impacto de las noticias de hoy para incentivar que comenten.\n"
+        "2. Incluye una llamada a la acción (CTA) clara y directa invitando a dar 'Me gusta' y a suscribirse si quieren mantenerse informados.\n"
+        "3. Despide el programa recordando que mañana habrá un nuevo análisis económico.\n"
+        "4. Mantén un tono cercano, profesional y fluido para ser leído en voz alta.\n"
+        "5. Máximo cuarenta palabras."
     )
-    outro_text = run_agent(system, outro_prompt, model, temperature=script_temperature)
+    outro_text = run_agent(system, outro_prompt, model, think=True ,temperature=script_temperature)
 
     script_estructura["sections"].append({
         "type": "outro",
@@ -925,8 +906,6 @@ def headline_agent(script_dict: dict) -> dict:
                                 NOTICIA:
                                 {new}
 
-                                Reglas:
-
                                 REGLAS:
                                 - MAXIMO CUATRO PALABRAS.
                                 - PROHIBIDO MAS DE 4 PALABRAS.
@@ -970,7 +949,7 @@ def headline_agent(script_dict: dict) -> dict:
                                     - No inventes información.
                                     - No termines con un punto.
                                     
-                                    Devuelve únicamente el subheadline.
+                                    Devuelve únicamente el subheadline que se va a mostrar al espectador.
                                     """
             print("Subheadline for " + i['type'])
             i["subhead"] = run_agent(system, prompt_subhead, model, temperature=headline_model_temperature, num_ctx=4096)
