@@ -16,6 +16,7 @@ from src.scraper import get_articles
 from src.produccion import producir
 from src.produccion_shorts import produce_shorts
 from src.youtube import publish
+from src.miniatures import render_miniature
 import os
 import warnings
 
@@ -112,7 +113,7 @@ def flow():
     # ------------------------------------------------------------------
 
     script_dict = script_agent_2(passed)
-    script_dict = script_control_3(script_dict)
+    #script_dict = script_control_3(script_dict)
 
     for section in script_dict['sections']:
         section['images_paths'] = []
@@ -174,15 +175,21 @@ def flow():
         json.dump(seo, f, ensure_ascii=False, indent=2, default=str)
     print(f"seo_dict guardado en {SEO_DICT_PATH}")
 
+    # ------------------------------------------------------------------
+    # 9. Render miniature
+    # ------------------------------------------------------------------
+
+    render_miniature()
+
     # --------------------------------------------------------------
-    # 9. Delete temporal images and audios
+    # 10. Delete temporal images and audios
     #---------------------------------------------------------------
 
     delete_images()
     delete_audios()
 
     # --------------------------------------------------------------
-    # 10.Youtube Auto Publish
+    # 11.Youtube Auto Publish
     #---------------------------------------------------------------
 
     publish(SEO_DICT_PATH)
