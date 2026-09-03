@@ -29,7 +29,7 @@ FFMPEG           = Path(__file__).parent / "assets" / "audio" / "ffmpeg.exe"
 IMAGES_PATH = Path(__file__).parent / "assets" / "news_images"
 AUDIO_PATH_FILE = Path(__file__).parent / "assets" / "audio" / "output.wav"
 SHORTS_AUDIO_PATH = Path(__file__).parent / "video" / "shorts"
-
+MINIATURES_PATH = Path(__file__).parent / "assets" / "miniature" / "miniature_out.jpg"
 
 def delete_images():
 
@@ -57,6 +57,10 @@ def delete_videos():
             path = os.path.join(SHORTS_AUDIO_PATH, i)
             os.unlink(path)
 
+def delete_miniatures():
+    if os.path.exists(MINIATURES_PATH):
+        os.unlink(MINIATURES_PATH)
+
 def flow():
 
     # ------------------------------------------------------------------
@@ -65,6 +69,8 @@ def flow():
 
     print('Deleting old videos...')
     delete_videos()
+    print('Deleting old miniatures...')
+    delete_miniatures()
 
     # ------------------------------------------------------------------
     # 1. Get and filter the news
