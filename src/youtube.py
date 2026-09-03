@@ -10,7 +10,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-def upload_youtube_long(video_path, title, description):
+def upload_youtube_long(video_path, miniature_path, title, description):
     # load options
     # In cmd uses "C:\Program Files\Google\Chrome\Application\chrome.exe" --user-data-dir="C:\ChromeSelenium"
     # open chrome sesion and select youtube channel, now seems to work
@@ -69,6 +69,9 @@ def upload_youtube_long(video_path, title, description):
     #click confirm the video has ia
     ia_confirm = wait.until(EC.element_to_be_clickable((By.XPATH, '//tp-yt-paper-radio-button[.//*[normalize-space(text())="Sí"]]')))
     ia_confirm.click()
+
+    #upload miniature
+    driver.find_element(By.CSS_SELECTOR, "input[type='file']").send_keys(str(miniature_path))
 
     #next click
     next = driver.find_element(By.XPATH, '//*[@id="next-button"]/div/ytcp-button-shape/button/yt-touch-feedback-shape')
@@ -233,9 +236,10 @@ def publish(seo_dict: json):
     long_description_hashtags = long_description + '\n\n' + long_hashtags
 
     VIDEO_PATH = Path(__file__).parent.parent / "video" / "episode.mp4"
+    MINIATURE_PATH = Path(__file__).parent.parent / "assets" / "miniature" / "miniature_out.jpg"
 
     #uploads all the info
-    upload_youtube_long(VIDEO_PATH, long_title, long_description_hashtags)
+    upload_youtube_long(VIDEO_PATH, MINIATURE_PATH, long_title, long_description_hashtags)
 
     #now uploads the shorts
     SHORTS_PATH = Path(__file__).parent.parent / "video" / "shorts"
@@ -243,10 +247,10 @@ def publish(seo_dict: json):
     date = datetime.now()
 
     meses = ["ene", "feb", "mar", "abr", "may", "jun",
-             "jul", "ago", "sep", "oct", "nov", "dic"]
+             "jul", "ago", "sept", "oct", "nov", "dic"]
 
     date = f"{date.day} {meses[date.month - 1]} {date.year}"
-    last_time = datetime.strptime("19:00", "%H:%M")
+    last_time = datetime.strptime("12:00", "%H:%M")
 
     print("[Publishing] Starting youtube short videos upload..")
     #do this once for every short in youtube
@@ -262,7 +266,7 @@ def publish(seo_dict: json):
 
         #detect if time is greater than 00:00
         prev_time = last_time
-        last_time += timedelta(minutes=30) #adds two hours to last time
+        last_time += timedelta(hours=2) #adds two hours to last time
 
         if last_time.day != prev_time.day:
             last_time = datetime.strptime("23:55", "%H:%M") #sets time at 23:55
