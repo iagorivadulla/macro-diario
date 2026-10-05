@@ -56,12 +56,12 @@ def read_feed_expansion():
 
 def read_feeds():
 
-    yahoo = read_feed_yahoo()
-    print(f'Passed {len(yahoo)} yahoo entries')
-    #expansion = read_feed_expansion()
-    #print(f'Passed {len(expansion)} expansion entries')
+    #yahoo = read_feed_yahoo()
+    #print(f'Passed {len(yahoo)} yahoo entries')
+    expansion = read_feed_expansion()
+    print(f'Passed {len(expansion)} expansion entries')
 
-    news =  yahoo #+ expansion
+    news = expansion #yahoo + expansion
     print(f'Found {len(news)} entries')
 
     return news

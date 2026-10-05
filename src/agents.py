@@ -423,7 +423,7 @@ def script_agent_2(news: list) -> dict:
         f"La fecha de hoy es exactamente: {fecha_exacta}.\n\n"
 
         "Sigue ESTRICTAMENTE este esquema paso a paso en un solo texto fluido:\n"
-        "1. HOOK DE IMPACTO: Una frase potente sobre el evento financiero o geopolítico más tenso de hoy. (Ejemplo: 'Los mercados aguantan la respiración ante una nueva escalada en el Golfo Pérsico y un movimiento inesperado en las materias primas.')\n"
+        "1. HOOK DE IMPACTO: Una frase potente sobre el evento financiero o geopolítico más tenso de hoy. \n"
         "2. SALUDO Y FECHA: 'Bienvenidos a Macro Diario, hoy es {fecha_exacta}.'\n IMPORTANTE DE INCLUIR SI O SI"
         "3. AVANCE DE TITULARES: Menciona en 2 o 3 frases dinámicas las noticias principales de la lista (quiénes son los protagonistas y qué está en juego hoy, sin revelar cifras exactas).\n"
         "4. CIERRE DE INTRO: Una frase final como: 'Analizamos las claves de la jornada y qué deberías vigilar en tu cartera. Comenzamos.'\n\n"
@@ -549,6 +549,8 @@ def script_agent_2(news: list) -> dict:
                 "-consecuencias"
                 "-contexto"
                 
+                "DEBE ESTAR EN CASTELLANO, NUNCA EN INGLES"
+                
                 "Tu unica función es enlazar el bloque anterior con el siguiente."
                 "Es preferible separar las secciones con una ráfaga gráfica/sonora breve y una entradilla directa "
                 "(Pasando a resultados industriales...) en lugar de intentar forzar una relación causal que no existe entre dos empresas o sectores distintos."
@@ -556,10 +558,6 @@ def script_agent_2(news: list) -> dict:
             )
 
             transition_text = run_agent(system, transition_prompt, model, think=True , temperature=script_temperature)
-
-            words = transition_text.split()
-            if len(words) > 18:
-                transition_text = " ".join(words[:18]).rstrip(",;:") + "."
 
             script_estructura["sections"].append({
                 "type": f"transition_{idx + 1}",
@@ -1277,7 +1275,7 @@ def image_agent_v9(script_dict: dict, headless: bool = True) -> dict:
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument(f"--window-size={VIEWPORT_W},{VIEWPORT_H}")
-        driver = uc.Chrome(options=options, version_main=152)
+        driver = uc.Chrome(options=options, version_main=154)
         driver.set_page_load_timeout(25)
         return driver
 

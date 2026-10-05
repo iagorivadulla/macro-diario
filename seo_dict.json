@@ -1,335 +1,147 @@
 {
   "episode": {
-    "main_news_id": 4,
-    "primary_keyword": "Rally de Oro y Bitcoin",
+    "main_news_id": 3,
+    "primary_keyword": "crisis de deuda en Francia",
     "secondary_keywords": [
-      "Movimiento del Tesoro",
-      "Rendimientos de Bonos",
-      "Inversión en Metales",
-      "FOMC Minutes"
+      "deuda pública",
+      "riesgo de insostenibilidad",
+      "zona del euro",
+      "deficit",
+      "gobierno francés"
     ],
-    "title": "Macro Diario | 21 de ago de 2026: ¿Por qué sube Oro y Bitcoin tras el anuncio del Tesoro?",
-    "description": "El Tesoro EE.UU. duplicó compras de bonos, impulsando rally de Oro (+2.7%) y Bitcoin (+5%). ¿Qué implica para inversiones? | Wall Street recupera terreno tras ajuste de tipos. XRP rompe resistencia clave. SpaceX busca adquirir Cognition AI. Diesel alcanza $102 por barril. Tipos hipotecarios en 6.68%. Suscríbete a Macro Diario para recibir el análisis diario de mercados.",
+    "title": "Macro Diario | 5/oct/2026: Crisis de deuda en Francia y su impacto en Europa",
+    "description": "Crisis de deuda en Francia: La deuda pública del país supera el 119% del PIB, lo que eleva su riesgo de insostenibilidad. ¿Qué implica para la zona del euro? \n\nEn el programa de hoy: Citi analiza la posible fusión entre BBVA y Sabadell si gana Feijóo; Sabadell vende Sogeviso; los gigantes del motor invierten 7.600 millones en electrificación; y las empresas españolas de Defensa facturan 18.000 millones. \n\nEste escenario afecta directamente a la cartera del inversor, especialmente en sectores como la banca y la deuda soberana. \n\nSuscríbete a Macro Diario para recibir el análisis diario de mercados.",
     "hashtags": [
-      "#TesoroEEUU",
-      "#Oro",
-      "#Bitcoin",
-      "#Inversion",
-      "#FOMC",
-      "#Mercados",
+      "#Francia",
+      "#DeudaPública",
+      "#ZonaDelEuro",
+      "#Inversión",
       "#Bolsa",
-      "#InteligenciaArtificial",
-      "#Petroleo",
-      "#TiposInteres"
+      "#Mercados",
+      "#DeudaSobrana",
+      "#EconomíaEuropea",
+      "#Inversores"
     ]
   },
   "shorts": [
     {
       "news_id": 1,
-      "primary_keyword": "oro precios",
+      "primary_keyword": "Citi analiza cambio de gobierno en España",
       "secondary_keywords": [
-        "FOMC",
-        "inversión",
-        "mercado",
-        "bonos",
-        "inflación",
-        "Medio Oriente"
+        "fusión BBVA Sabadell",
+        "inversión bancaria",
+        "mercado español"
       ],
-      "title": "Macro Diario | Oro se dispara tras FOMC: ¿$4,479.90?",
-      "description": "El oro sube a $4,479.90 tras el FOMC. La inflación y la tensión en el Medio Oriente afectan la visión de los tipos. Inversión en oro y mercado en alerta. Mira el análisis completo en el canal de Macro Diario.",
+      "title": "Macro Diario | Citi: cambio de gobierno en España podría reactivar fusión BBVA-Sabadell",
+      "description": "Citi sugiere que un cambio de gobierno en España podría reactivar el debate sobre la fusión entre BBVA y Sabadell. Inversores revisan la independencia de Sabadell. Mira el análisis completo en el canal de Macro Diario.",
       "hashtags": [
-        "#oro",
-        "#FOMC",
-        "#inversión",
-        "#mercado",
-        "#inflación",
-        "#MedioOriente"
+        "#BBVA",
+        "#Sabadell",
+        "#BancaEspaña",
+        "#MacroDiario",
+        "#InversiónBancaria"
       ]
     },
     {
       "news_id": 2,
-      "primary_keyword": "XRP Price Prediction",
+      "primary_keyword": "Sabadell vende Sogeviso",
       "secondary_keywords": [
-        "XRP Support Level",
-        "SEC Regulations",
-        "Crypto Market",
-        "Bitcoin Liquidations",
-        "Crypto Trading"
+        "desinversiones",
+        "alquileres asequibles",
+        "mercado de viviendas",
+        "Clikalia",
+        "Proyectos Vive"
       ],
-      "title": "Macro Diario | ¿Qué pasa con XRP tras subir 6% tras reglas SEC?",
-      "description": "XRP sube 6% tras nuevas reglas de la SEC, rompiendo resistencia de $1. Inversores destacan liquidaciones de $1.7B y el impacto de regulaciones en el mercado. Mira el análisis completo en el canal de Macro Diario.",
+      "title": "Macro Diario | Sabadell vende Sogeviso: ¿Qué pasa con 23.000 contratos?",
+      "description": "Sabadell retoma su plan de desinversiones vendiendo Sogeviso, que gestionaba alquileres asequibles. La venta afecta a usuarios y empleados. Mira el análisis completo en el canal de Macro Diario.",
       "hashtags": [
-        "#XRP",
-        "#CryptoMarket",
-        "#SECRegulations",
-        "#Bitcoin",
-        "#CryptoTrading",
-        "#MarketAnalysis"
+        "#Sabadell",
+        "#Sogeviso",
+        "#desinversiones",
+        "#alquileres",
+        "#Clikalia",
+        "#mercadoviviendas"
       ]
     },
     {
       "news_id": 3,
-      "primary_keyword": "SpaceX adquiere Cognition AI",
+      "primary_keyword": "crisis deuda zona euro",
       "secondary_keywords": [
-        "$26B",
-        "valoración $40B",
-        "IA",
-        "inversión",
-        "mercado tecnológico"
+        "Francia deuda pública",
+        "riesgo insostenibilidad",
+        "diferenciales riesgo",
+        "déficit PIB"
       ],
-      "title": "Macro Diario | SpaceX intenta adquirir Cognition AI: ¿$40B?",
-      "description": "SpaceX exploró adquirir Cognition AI, valorada en $26B, con conversaciones sobre $40B. El interés refleja la estrategia de Musk en IA. Inversión clave en tecnología. Mira el análisis completo en el canal de Macro Diario.",
+      "title": "Macro Diario | Francia se hunde en crisis deuda: ¿Qué pasa con la zona euro?",
+      "description": "Francia enfrenta una crisis de deuda similar a la griega de 2010, con un déficit del 5% del PIB. La deuda pública supera el 119% del PIB, elevando su riesgo de insostenibilidad. Mira el análisis completo en el canal de Macro Diario.",
       "hashtags": [
-        "#SpaceX",
-        "#CognitionAI",
-        "#IA",
-        "#MercadoTech",
-        "#Inversión",
+        "#crisisdeuda",
+        "#zonaeuro",
+        "#Francia",
+        "#deudapublica",
+        "#macroeconomia",
+        "#riesgoinversión"
+      ]
+    },
+    {
+      "news_id": 4,
+      "primary_keyword": "inversión en electrificación",
+      "secondary_keywords": [
+        "Volkswagen",
+        "Renault",
+        "Mercedes-Benz",
+        "Chery",
+        "Geely",
+        "España",
+        "vehículos eléctricos"
+      ],
+      "title": "Macro Diario | Gigantes del motor invierten 7.600 millones en electrificar España",
+      "description": "España recibe 7.600 millones en inversión para electrificar el automóvil. Proyectos liderados por Volkswagen, Renault, Mercedes-Benz y fabricantes chinos. Mira el análisis completo en el canal de Macro Diario.",
+      "hashtags": [
+        "#Electrificación",
+        "#Automotriz",
+        "#España",
+        "#Volkswagen",
+        "#Renault",
+        "#Mercadeo"
+      ]
+    },
+    {
+      "news_id": 5,
+      "primary_keyword": "empresas españolas de Defensa",
+      "secondary_keywords": [
+        "facturación récord",
+        "gasto público en Defensa",
+        "modernización programas nacionales"
+      ],
+      "title": "Macro Diario | Empresas españolas de Defensa facturan 18.000 millones: récord histórico",
+      "description": "En 2025, las empresas españolas de Defensa facturaron 18.034 millones de euros, un 11,6% más que en 2024. El impulso se debe al aumento del gasto público en Defensa. Mira el análisis completo en el canal de Macro Diario.",
+      "hashtags": [
+        "#DefensaEspaña",
+        "#FacturaciónRécord",
+        "#GastoPúblico",
+        "#IndustriaDefensa",
         "#MacroDiario"
       ]
     },
     {
-      "news_id": 4,
-      "primary_keyword": "Tesoro EE.UU.",
-      "secondary_keywords": [
-        "Mercado Bonos",
-        "Oro",
-        "Bitcoin",
-        "Macro Economía",
-        "Inversiones"
-      ],
-      "title": "Macro Diario | Tesoro EE.UU. duplica compras de bonos a $4B: ¿Qué pasa con oro y Bitcoin?",
-      "description": "El Tesoro de EE.UU. duplicó compras de bonos de largo plazo a $4B, impulsando oro y Bitcoin. Inversión en activos volátiles: ¿Cómo afecta la liquidez al mercado? Mira el análisis completo en el canal de Macro Diario.",
-      "hashtags": [
-        "#TesoroEEUU",
-        "#MercadoBonos",
-        "#Oro",
-        "#Bitcoin",
-        "#MacroEconomia",
-        "#Inversiones"
-      ]
-    },
-    {
-      "news_id": 5,
-      "primary_keyword": "Diésel",
-      "secondary_keywords": [
-        "spread",
-        "inventarios",
-        "inflación",
-        "Oriente Medio",
-        "Rusia",
-        "China"
-      ],
-      "title": "Macro Diario | Diésel se dispara tras $100 de spread: ¿Qué pasa con el mercado?",
-      "description": "El spread del diésel alcanzó $102 por barril, récord histórico, mientras los inventarios mundiales caen 12% por debajo de la media de cinco años. La escasez física en el diésel, clave para la economía y la inflación, se intensifica debido a conflictos en Oriente Medio, Rusia y China. Inversores deben vigilar la evolución de los inventarios y la logística para anticipar movimientos en el mercado. Mira el análisis completo en el canal de Macro Diario.",
-      "hashtags": [
-        "#Diésel",
-        "#MercadoPetrolero",
-        "#Inflación",
-        "#OrienteMedio",
-        "#Rusia",
-        "#China"
-      ]
-    },
-    {
       "news_id": 6,
-      "primary_keyword": "MercadosEstadosUnidos",
+      "primary_keyword": "crisis deuda",
       "secondary_keywords": [
-        "Moderna",
-        "Inversión",
-        "BienesRaíces",
-        "MacroDiario",
-        "Economía"
+        "Bolsa",
+        "Lombard Odier",
+        "Silvia García",
+        "mercados financieros",
+        "inversión"
       ],
-      "title": "Macro Diario | Mercados suben tras 3 días de pérdidas: Moderna se dispara 176%",
-      "description": "Los mercados estadounidenses subieron tras una caída de 3 días, impulsados por el aumento de compras de deuda del Tesoro. Moderna subió 176% tras reportar resultados positivos. Mira el análisis completo en el canal de Macro Diario.",
+      "title": "Macro Diario | Crisis deuda: ¿Cómo afrontar en Bolsa con Silvia García?",
+      "description": "Silvia García, de Lombard Odier, explica cómo navegar la crisis de deuda en Bolsa. Estrategias para incertidumbre y ajustes en mercados. Mira el análisis completo en el canal de Macro Diario.",
       "hashtags": [
-        "#MercadosEstadosUnidos",
-        "#Moderna",
-        "#Inversión",
-        "#BienesRaíces",
-        "#MacroDiario",
-        "#Economía"
-      ]
-    },
-    {
-      "news_id": 7,
-      "primary_keyword": "Mortgage rates",
-      "secondary_keywords": [
-        "30-year fixed rate",
-        "Bankrate",
-        "inflation",
-        "Fed",
-        "Real Estate"
-      ],
-      "title": "Macro Diario | ¿Qué pasa con los tipos hipotecarios? Bajan a 6.68%",
-      "description": "Los tipos hipotecarios bajaron ligeramente a 6.68% según Bankrate, pero siguen cerca de su nivel anual. La inflación elevada mantiene los costos altos. Mira el análisis completo en el canal de Macro Diario.",
-      "hashtags": [
-        "#MortgageRates",
-        "#Bankrate",
-        "#Inflation",
-        "#Fed",
-        "#RealEstate",
-        "#EconomicNews"
-      ]
-    }
-  ],
-  "tiktok": [
-    {
-      "news_id": 1,
-      "primary_keyword": "Precio Oro FOMC",
-      "secondary_keywords": [
-        "Inversores",
-        "Fed",
-        "Rendimientos Bonos",
-        "Inflación Medio Oriente"
-      ],
-      "title": "¡Cuidado! Oro sube tras FOMC",
-      "hashtags": [
-        "#OroFOMC",
-        "#Inversiones",
-        "#Finanzas",
-        "#Fed",
-        "#RendimientosBonos"
-      ]
-    },
-    {
-      "news_id": 2,
-      "primary_keyword": "XRP",
-      "secondary_keywords": [
-        "SEC",
-        "Bitcoin",
-        "liquidaciones",
-        "resistencia",
-        "apoyo",
-        "inversores",
-        "regulaciones",
-        "tendencia",
-        "precio",
-        "predicción",
-        "mover",
-        "mercado",
-        "finanzas",
-        "criptomonedas",
-        "inversión",
-        "trading",
-        "análisis",
-        "liquidez",
-        "regulaciones",
-        "inversores",
-        "mercado",
-        "finanzas",
-        "criptomonedas",
-        "inversión",
-        "trading",
-        "análisis"
-      ],
-      "title": "¡Cuidado! XRP rompe resistencia de $1 tras reglas SEC",
-      "hashtags": [
-        "#XRP",
-        "#SEC",
-        "#Bitcoin",
-        "#Finanzas",
-        "#Criptomonedas",
-        "#Inversión"
-      ]
-    },
-    {
-      "news_id": 3,
-      "primary_keyword": "SpaceX intenta adquirir Cognition AI",
-      "secondary_keywords": [
-        "valoración de $26B",
-        "Musk en IA",
-        "negociaciones en curso",
-        "SpaceXAI",
-        "Cognition AI"
-      ],
-      "title": "¡Cuidado! SpaceX intenta adquirir Cognition AI valorada en $26B",
-      "hashtags": [
-        "#SpaceX",
-        "#AprendeAInvertir",
-        "#Finanzas",
-        "#IA",
-        "#Tech",
-        "#Inversión"
-      ]
-    },
-    {
-      "news_id": 4,
-      "primary_keyword": "Tesoro EE.UU. duplica compras de bonos",
-      "secondary_keywords": [
-        "sube oro y Bitcoin",
-        "liquidez en bonos",
-        "tasas de rendimiento",
-        "endeudamiento",
-        "mercados financieros"
-      ],
-      "title": "¡Cuidado! Tesoro EE.UU. duplica compras de bonos y sube oro y Bitcoin 5%",
-      "hashtags": [
-        "#TesoroEEUU",
-        "#AprendeAInvertir",
-        "#Finanzas",
-        "#MercadosFinancieros",
-        "#Bitcoin",
-        "#Oro"
-      ]
-    },
-    {
-      "news_id": 5,
-      "primary_keyword": "diésel",
-      "secondary_keywords": [
-        "inventarios",
-        "escasez",
-        "inflación",
-        "conflictos",
-        "mercados"
-      ],
-      "title": "¡Cuidado! El diésel rompe récord a $100 por barril",
-      "hashtags": [
-        "#Diesel",
-        "#Inflación",
-        "#Finanzas",
-        "#Mercados",
-        "#Energía",
-        "#Crisis"
-      ]
-    },
-    {
-      "news_id": 6,
-      "primary_keyword": "Mercados Estadounidenses",
-      "secondary_keywords": [
-        "Bonos",
-        "Moderna",
-        "Tasas de Interés",
-        "Fed",
-        "Inversores"
-      ],
-      "title": "¡Cuidado! Mercados estadounidenses terminan 3 días de pérdidas",
-      "hashtags": [
-        "#MercadosEstadounidenses",
-        "#Moderna",
-        "#Finanzas",
-        "#AprendeAInvertir",
-        "#Inversores"
-      ]
-    },
-    {
-      "news_id": 7,
-      "primary_keyword": "tipos hipotecarios",
-      "secondary_keywords": [
-        "tipos de interés",
-        "inflación",
-        "Fed",
-        "crédito inmobiliario"
-      ],
-      "title": "¡Cuidado! Tipos hipotecarios caen pero siguen en niveles altos",
-      "hashtags": [
-        "#TiposHipotecarios",
-        "#Inflación",
-        "#Fed",
-        "#Finanzas",
-        "#CréditoInmobiliario",
-        "#FinanzasPersonales"
+        "#crisisdeuda",
+        "#Bolsa",
+        "#LombardOdier",
+        "#inversión",
+        "#mercadosfinancieros"
       ]
     }
   ]

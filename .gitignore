@@ -9,8 +9,7 @@ __pycache__/
 .idea/
 
 # Outputs generados en cada ejecución
-script_dict.json
-seo_dict.json
+*.json
 
 #images downloaded
 assets/news_images/*

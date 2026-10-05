@@ -205,10 +205,63 @@ def flow_test():
     with open(SCRIPT_DICT_PATH, "r", encoding="utf-8") as f:
         script_dict = json.load(f)
 
+    script_dict = image_agent_v9(script_dict)
+    script_dict = image_agent_v8(script_dict)
+
+    # ------------------------------------------------------------------
+    # 5. Create the voice path and save duration in the script
+    # ------------------------------------------------------------------
+
+    broadcaster(script_dict)
+
+    # ------------------------------------------------------------------
+    # 6. Saves the script
+    # ------------------------------------------------------------------
+
+    with open(SCRIPT_DICT_PATH, "w", encoding="utf-8") as f:
+        json.dump(script_dict, f, ensure_ascii=False, indent=2, default=str)
+    print(f"script_dict guardado en {SCRIPT_DICT_PATH}")
+
+    # ------------------------------------------------------------------
+    # 7. Build the video and shorts
+    # ------------------------------------------------------------------
+
     producir(
         script_dict=script_dict,
         output=OUTPUT_VIDEO,
-        ffmpeg=FFMPEG,)
+        ffmpeg=FFMPEG,
+    )
+
+    produce_shorts()
+
+    # ------------------------------------------------------------------
+    # 8. Build the seo for youtube
+    # ------------------------------------------------------------------
+
+    seo = seo_agent_v2(script_dict)
+
+    with open(SEO_DICT_PATH, "w", encoding="utf-8") as f:
+        json.dump(seo, f, ensure_ascii=False, indent=2, default=str)
+    print(f"seo_dict guardado en {SEO_DICT_PATH}")
+
+    # ------------------------------------------------------------------
+    # 9. Render miniature
+    # ------------------------------------------------------------------
+
+    render_miniature()
+
+    # --------------------------------------------------------------
+    # 10. Delete temporal images and audios
+    # ---------------------------------------------------------------
+
+    delete_images()
+    delete_audios()
+
+    # --------------------------------------------------------------
+    # 11.Youtube Auto Publish
+    # ---------------------------------------------------------------
+
+    publish(SEO_DICT_PATH)
 
 
 if __name__ == "__main__":

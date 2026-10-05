@@ -1,5 +1,5 @@
 import json
-from agents import run_agent
+from src.agents import run_agent
 from pathlib import Path
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
