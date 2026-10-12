@@ -1,7 +1,9 @@
 import feedparser
 from datetime import datetime, timedelta, timezone
 from sympy import public
-
+import requests
+from selenium import webdriver
+from bs4 import BeautifulSoup
 
 def read_feed_yahoo():
     #search the yahoo rss feed
@@ -20,7 +22,7 @@ def read_feed_yahoo():
             "%Y-%m-%dT%H:%M:%SZ"
         ).replace(tzinfo=timezone.utc)
 
-        if pub_datetime == pub_datetime:
+        if pub_datetime >= max_age:
             news.append({
                 'title': entry.title,
                 'link': entry.link,
@@ -45,7 +47,7 @@ def read_feed_expansion():
 
         pub_date = pub_datetime.date()
 
-        if pub_date == pub_date: #change this
+        if pub_date == today: #change this
             news.append({
             'title': feed.entries[entry].title,
             'link': feed.entries[entry].link,
@@ -54,6 +56,39 @@ def read_feed_expansion():
 
     return news
 
+
+
+def read_feed_eleconomista():
+
+    news = []
+
+    for i in range(1, 5):
+        url = f'https://www.eleconomista.es/noticias/economia/Pagina/{i}'
+
+        driver = webdriver.Chrome()
+
+        driver.get(url)
+        html = driver.page_source
+        soup = BeautifulSoup(html, 'html.parser')
+
+        driver.quit()
+
+        content = soup.find('div', class_='main-content')
+        titles = content.find_all('h2', class_='h3')
+
+        for i in titles:
+            title = i.text
+            link = i.a.get('href')
+
+            news.append({
+                'title': title,
+                'link': link.replace('//', 'https://'),
+            })
+
+    return news
+
+
+
 def read_feeds():
 
     #yahoo = read_feed_yahoo()
@@ -61,10 +96,13 @@ def read_feeds():
     expansion = read_feed_expansion()
     print(f'Passed {len(expansion)} expansion entries')
 
-    news = expansion #yahoo + expansion
+    eleconomista = read_feed_eleconomista()
+    print(f'Passed {len(eleconomista)} eleconomista entries')
+
+    news = expansion + eleconomista
     print(f'Found {len(news)} entries')
 
     return news
 
 if __name__ == '__main__':
-    read_feeds()
+    print(read_feeds())
