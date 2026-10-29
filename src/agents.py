@@ -138,25 +138,17 @@ def run_agent(system: str, prompt: str, model: str, schema: BaseModel = None, th
 # ---------------------------------------------------------------------------
 # Models
 # -----------------------------------------------------------------------model
-'''
-filter_model = "qwen2.5:7b-instruct-q4_K_M"
-resume_model = "gemma2:9b-instruct-q4_K_M"
-control_model = "llama3.1:8b-instruct-q4_K_M"
-script_model = "gemma2:9b-instruct-q4_K_M"
-script_control_model = "llama3.1:8b-instruct-q4_K_M"
-image_model = "qwen2.5:7b-instruct-q4_K_M"
-vision_model = "llava:7b"
-'''
-filter_model = "qwen3:8b"
-resume_model = "qwen3:8b"
+
+filter_model = "qwen3.5:9b"
+resume_model = "qwen3.5:9b"
 control_model = "qwen3:8b"
 script_model = "qwen3:8b"
-script_control_model = "qwen3:8b"
-headline_model = "qwen3:8b"
-headline_control_model = "qwen3:8b"
-image_model = "qwen3:8b"
+script_control_model = "qwen3.5:9b"
+headline_model = "qwen3.5:9b"
+headline_control_model = "qwen3.5:9b"
+image_model = "qwen3.5:9b"
 vision_model = "qwen3-vl:8b"
-seo_model = "qwen3:8b"
+seo_model = "qwen3.5:9b"
 
 filter_temperature = 0.0
 resume_temperature = 0.2
@@ -267,7 +259,7 @@ def resume_agent(news: list) -> list:
         title = i['title']
         # TRUNCAMIENTO UNIFICADO: Aseguramos que el resumidor lea lo mismo que el controlador
         raw_article = i.get('article', '')
-        article = raw_article[:4000] if raw_article else ''
+        article = raw_article if raw_article else ''
 
         control_reason = i.get('control_reason')
         last_resume = i.get('resume')
@@ -326,7 +318,7 @@ def control_agent(news: list) -> list:
         title = i['title']
         raw_article = i.get('article', '')
         # Leemos exactamente los mismos caracteres que el resumidor
-        article = raw_article[:4000] if raw_article else ''
+        article = raw_article if raw_article else ''
         resume = i.get('resume')
 
         if article and not resume:
@@ -1275,7 +1267,7 @@ def image_agent_v9(script_dict: dict, headless: bool = True) -> dict:
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument(f"--window-size={VIEWPORT_W},{VIEWPORT_H}")
-        driver = uc.Chrome(options=options, version_main=154)
+        driver = uc.Chrome(options=options, version_main=156)
         driver.set_page_load_timeout(25)
         return driver
 
