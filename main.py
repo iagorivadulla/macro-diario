@@ -102,7 +102,7 @@ def flow():
     for d in denied:
         print(f"  [!] Rechazado: {d['title'][:30]}... | Motivo: {d.get('control_reason')}")
 
-    retries = 3
+    retries = 5
     while denied and retries > 0:
         resumes          = resume_agent(denied)
         accepted, denied = control_agent(resumes)
@@ -205,63 +205,67 @@ def flow_test():
     with open(SCRIPT_DICT_PATH, "r", encoding="utf-8") as f:
         script_dict = json.load(f)
 
-    script_dict = image_agent_v9(script_dict)
-    script_dict = image_agent_v8(script_dict)
+        # ------------------------------------------------------------------
+        # 4. Search and download images
+        # ------------------------------------------------------------------
 
-    # ------------------------------------------------------------------
-    # 5. Create the voice path and save duration in the script
-    # ------------------------------------------------------------------
+        script_dict = image_agent_v9(script_dict)
+        script_dict = image_agent_v8(script_dict)
 
-    broadcaster(script_dict)
+        # ------------------------------------------------------------------
+        # 5. Create the voice path and save duration in the script
+        # ------------------------------------------------------------------
 
-    # ------------------------------------------------------------------
-    # 6. Saves the script
-    # ------------------------------------------------------------------
+        broadcaster(script_dict)
 
-    with open(SCRIPT_DICT_PATH, "w", encoding="utf-8") as f:
-        json.dump(script_dict, f, ensure_ascii=False, indent=2, default=str)
-    print(f"script_dict guardado en {SCRIPT_DICT_PATH}")
+        # ------------------------------------------------------------------
+        # 6. Saves the script
+        # ------------------------------------------------------------------
 
-    # ------------------------------------------------------------------
-    # 7. Build the video and shorts
-    # ------------------------------------------------------------------
+        with open(SCRIPT_DICT_PATH, "w", encoding="utf-8") as f:
+            json.dump(script_dict, f, ensure_ascii=False, indent=2, default=str)
+        print(f"script_dict guardado en {SCRIPT_DICT_PATH}")
 
-    producir(
-        script_dict=script_dict,
-        output=OUTPUT_VIDEO,
-        ffmpeg=FFMPEG,
-    )
+        # ------------------------------------------------------------------
+        # 7. Build the video and shorts
+        # ------------------------------------------------------------------
 
-    produce_shorts()
+        producir(
+            script_dict=script_dict,
+            output=OUTPUT_VIDEO,
+            ffmpeg=FFMPEG,
+        )
 
-    # ------------------------------------------------------------------
-    # 8. Build the seo for youtube
-    # ------------------------------------------------------------------
+        produce_shorts()
 
-    seo = seo_agent_v2(script_dict)
+        # ------------------------------------------------------------------
+        # 8. Build the seo for youtube
+        # ------------------------------------------------------------------
 
-    with open(SEO_DICT_PATH, "w", encoding="utf-8") as f:
-        json.dump(seo, f, ensure_ascii=False, indent=2, default=str)
-    print(f"seo_dict guardado en {SEO_DICT_PATH}")
+        seo = seo_agent_v2(script_dict)
 
-    # ------------------------------------------------------------------
-    # 9. Render miniature
-    # ------------------------------------------------------------------
+        with open(SEO_DICT_PATH, "w", encoding="utf-8") as f:
+            json.dump(seo, f, ensure_ascii=False, indent=2, default=str)
+        print(f"seo_dict guardado en {SEO_DICT_PATH}")
 
-    render_miniature()
+        # ------------------------------------------------------------------
+        # 9. Render miniature
+        # ------------------------------------------------------------------
 
-    # --------------------------------------------------------------
-    # 10. Delete temporal images and audios
-    # ---------------------------------------------------------------
+        render_miniature()
 
-    delete_images()
-    delete_audios()
+        # --------------------------------------------------------------
+        # 10. Delete temporal images and audios
+        # ---------------------------------------------------------------
 
-    # --------------------------------------------------------------
-    # 11.Youtube Auto Publish
-    # ---------------------------------------------------------------
+        delete_images()
+        delete_audios()
 
-    publish(SEO_DICT_PATH)
+        # --------------------------------------------------------------
+        # 11.Youtube Auto Publish
+        # ---------------------------------------------------------------
+
+        publish(SEO_DICT_PATH)
 
 
 if __name__ == "__main__":
