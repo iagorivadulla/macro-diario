@@ -40,6 +40,7 @@ def read_feed_expansion():
     news = []
 
     today = datetime.today().date()
+    yesterday = today - timedelta(days=1)
 
     for entry in range(len(feed.entries)):
 
@@ -47,7 +48,7 @@ def read_feed_expansion():
 
         pub_date = pub_datetime.date()
 
-        if pub_date == today: #change this
+        if pub_date == today or pub_date == yesterday: #change this
             news.append({
             'title': feed.entries[entry].title,
             'link': feed.entries[entry].link,
