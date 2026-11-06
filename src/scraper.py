@@ -10,7 +10,7 @@ def driver_scrape_cincodias(url):
     soup = BeautifulSoup(html, 'html.parser')
     soup = soup.find('div', class_='Article__paragraphGroup')
     driver.quit()
-    return soup.text
+    return soup.text if not None else None
 
 
 def scraper(url):
