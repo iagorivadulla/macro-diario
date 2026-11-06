@@ -1,162 +1,97 @@
 # Macro Diario
 
-[![Python](https://img.shields.io/badge/Python-3.10+-blue?style=flat-square&logo=python)](https://www.python.org/)
-[![Ollama](https://img.shields.io/badge/Ollama-local%20LLM-black?style=flat-square)](https://ollama.com/)
-[![Pydantic](https://img.shields.io/badge/Pydantic-v2-red?style=flat-square)](https://docs.pydantic.dev/)
-[![FFmpeg](https://img.shields.io/badge/FFmpeg-audio%20post-green?style=flat-square&logo=ffmpeg)](https://ffmpeg.org/)
-[![Selenium](https://img.shields.io/badge/Selenium-scraping-43B02A?style=flat-square&logo=selenium)](https://www.selenium.dev/)
-[![OpenCV](https://img.shields.io/badge/OpenCV-video-5C3EE8?style=flat-square&logo=opencv)](https://opencv.org/)
-[![Pillow](https://img.shields.io/badge/Pillow-pixel--art-orange?style=flat-square)](https://pillow.readthedocs.io/)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Ollama](https://img.shields.io/badge/Ollama-LLM-black)](https://ollama.com/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-CUDA%2012.1-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org/)
+[![OmniVoice](https://img.shields.io/badge/OmniVoice-TTS-5B8C5A)](https://github.com/k2-fsa/OmniVoice)
+[![Selenium](https://img.shields.io/badge/Selenium-Web%20automation-43B02A?logo=selenium&logoColor=white)](https://www.selenium.dev/)
+[![FFmpeg](https://img.shields.io/badge/FFmpeg-Audio%20%26%20video-007808?logo=ffmpeg&logoColor=white)](https://ffmpeg.org/)
+[![OpenCV](https://img.shields.io/badge/OpenCV-Image%20processing-5C3EE8?logo=opencv&logoColor=white)](https://opencv.org/)
+[![Pillow](https://img.shields.io/badge/Pillow-Image%20processing-3776AB)](https://pillow.readthedocs.io/)
+[![Pydantic](https://img.shields.io/badge/Pydantic-Data%20validation-E92063?logo=pydantic&logoColor=white)](https://docs.pydantic.dev/)
 
-Macro Diario es un sistema de producción automatizada para crear contenido financiero en formato de vídeo y short a partir de noticias reales. Reúne información de fuentes RSS, la filtra con IA local, valida calidad editorial, genera guiones, busca imágenes, sintetiza la voz y compone el material final y lo publica.
 
-📺 Canal actual: https://www.youtube.com/@MacroDiario
 
-El proyecto se publica diariamente en este canal, donde se comparte el episodio generado por el pipeline y sus versiones cortas para redes sociales.
+Macro Diario es un pipeline de producción audiovisual para un informativo económico en español. Reúne noticias, las resume y valida con modelos de lenguaje, genera un guion y una locución, crea el vídeo principal y sus Shorts, prepara metadatos y puede subir el contenido a YouTube.
 
-## ¿Qué hace este proyecto?
+Canal: [youtube.com/@MacroDiario](https://www.youtube.com/@MacroDiario)
 
-Macro Diario automatiza todo el ciclo editorial y audiovisual de un programa de noticias económicas:
+## Flujo de producción
 
-- recoge titulares y enlaces desde fuentes de información financiera
-- selecciona las historias más relevantes con criterios editoriales
-- resume y valida cada artículo para descartar ruido o contenido débil
-- escribe un guion estructurado con tono periodístico y claridad narrativa
-- revisa la redacción para mantener estándares de calidad
-- busca recursos visuales compatibles con cada tema
-- genera voz en off local con síntesis de texto a voz
-- compone el vídeo final con presentador, imágenes y audio
-- prepara versiones cortas para redes sociales
-- redacta los metadatos para el SEO (titulos, descripciones, hashtags)
-- publica automaticamente en youtube y en tiktok
+Al ejecutar `python main.py`, el programa realiza estas etapas:
 
----
+1. Obtiene noticias de Expansión y elEconomista y selecciona siete titulares con Ollama.
+2. Extrae los artículos, genera resúmenes y los somete a un control factual; intenta corregir los rechazados hasta cinco veces.
+3. Redacta la apertura, los bloques de noticias y un guion breve para cada Short. La revisión adicional del guion está desactivada actualmente en `main.py`.
+4. Busca imágenes para las secciones y genera la locución en español con OmniVoice.
+5. Produce el episodio y los Shorts, crea metadatos SEO y renderiza la miniatura.
+6. Elimina imágenes y audios temporales e inicia la publicación del vídeo y de los Shorts en YouTube.
 
-## Visión general del flujo
+La lectura del feed de Yahoo está definida en el código, pero no se utiliza en la ejecución actual. El proyecto no publica en TikTok.
+
+## Estructura
 
 ```text
-RSS / fuentes financieras
-        ↓
-Filtrado editorial con IA
-        ↓
-Resumen + validación de calidad
-        ↓
-Guion + revisión periodística
-        ↓
-Búsqueda de imágenes
-        ↓
-voz sintética
-        ↓
-Composición del video final + Shorts
-        ↓
-Metadata SEO
-        ↓
-Publicación
-```
-
----
-
-## Arquitectura del proyecto
-
-```text
-macro-diario/
-├── main.py                     # orchestrator principal
+.
+├── main.py                   # Orquesta el pipeline completo
 ├── src/
-│   ├── rss.py                  # lectura de feeds / titulares
-│   ├── scraper.py              # extracción de contenido de artículos
-│   ├── agents.py               # agentes LLM: filtro, resumen, control, texto, imágenes y SEO
-│   ├── produccion.py           # edición de audio y composición del video principal
-│   ├── produccion_shorts.py    # generación de shorts
-│   ├── youtube.py              # metadata / publicación
-│   └── __init__.py
-├── context/
-│   ├── editorial.md            # identidad del programa
-│   ├── filter_criteria.md      # criterios de selección
-│   ├── standards.md            # estándares editoriales
-│   ├── structure.md            # formato del guion
-│   └── style.md                # tono y estilo de redacción
+│   ├── agents.py              # Agentes de selección, resumen, guion, voz, imágenes y SEO
+│   ├── rss.py                 # Obtención de titulares
+│   ├── scraper.py             # Extracción del contenido de los artículos
+│   ├── produccion.py          # Vídeo horizontal
+│   ├── produccion_shorts.py   # Vídeos verticales
+│   ├── miniatures.py         # Render de la miniatura
+│   └── youtube.py             # Subida y programación en YouTube
+├── context/                   # Instrucciones editoriales usadas por los agentes
 ├── assets/
-│   ├── audio/
-│   ├── background/
-│   └── ...
+│   ├── audio/                  # Voz de referencia, música y ejecutable de FFmpeg
+│   ├── background/             # Fondos y sprites del presentador
+│   ├── fonts/                  # Tipografías
+│   └── miniature/              # Plantilla y miniatura renderizada
 ├── requirements.txt
-├── Readme.MD
-├── seo_dict.json
-├── script_dict.json
-└── main.py
+└── seo_dict.json              # Metadatos de salida (generados)
 ```
 
----
+## Requisitos
 
-## Stack tecnológico
+- Python y las dependencias indicadas en `requirements.txt`.
+- Ollama instalado y en ejecución, con los modelos `qwen3.5:9b`, `qwen3:8b` y `qwen3-vl:8b` disponibles.
+- Una GPU NVIDIA compatible con la configuración CUDA de PyTorch y OmniVoice usada por el código.
+- Chrome y ChromeDriver compatibles para la extracción web y la subida a YouTube.
+- Los recursos locales de `assets/`: en particular, `audio/omnivoice_voice.pt`, `audio/ffmpeg.exe`, la música, los fondos, los sprites, la plantilla de miniatura y la tipografía referenciada por los módulos.
+- Los directorios de trabajo `assets/news_images/` y `video/shorts/` (este último debe existir antes del primer arranque).
 
-| Área | Tecnología |
-|---|---|
-| IA local | Ollama |
-| Modelos principales | qwen3:8b, qwen3-vl:8b |
-| Validación estructurada | Pydantic |
-| Voz sintética | Supertonic / TTS local |
-| Postprocesado de audio | FFmpeg |
-| Scraping web | Selenium + undetected-chromedriver |
-| Procesado visual | OpenCV + Pillow |
-| Publicación | flujo automatizado de salida y metadata |
-
----
-
-## Cómo funciona el pipeline
-
-### 1. Selección de noticias
-El sistema consulta feeds RSS, deduplica titulares y evalúa qué historias tienen más valor para el programa.
-
-### 2. Resumen y control editorial
-Se extrae el contenido de cada artículo y se genera un resumen. Un agente comprueba si la noticia es útil, clara, relevante y adecuada para el tono del programa.
-
-### 3. Redacción del episodio
-Con las historias aprobadas, el sistema genera un guion con una estructura narrativa y una voz editorial consistente.
-
-### 4. Búsqueda visual
-Cada sección del episodio puede incorporar imágenes contextualmente adecuadas para reforzar la información.
-
-### 5. Producción audiovisual
-Se genera la narración, se mezcla con música y voz, y se compone el vídeo final con un presentador visual y un short por cada noticia.
-
-### 6. SEO
-Se generan metadatos para optimizar la distribución en plataformas como YouTube y TikTok tanto del video principal como de los shorts.
-
-### 7. Publicación
-Se autopublica rellenando cada campo que se pide en Youtube y luego en TikTok
-
----
-
-## Requisitos previos
-
-Antes de ejecutar el proyecto, asegúrate de tener instalado:
-
-- Python 3.10+
-- Ollama funcionando localmente
-- modelos descargados en Ollama
-- Chrome o Chromium disponible para scraping visual
-- FFmpeg instalado y accesible desde el PATH
-
----
+La configuración de audio y publicación contiene rutas absolutas de Windows y una ruta de perfil de Chrome (`C:\ChromeSelenium`). Antes de ejecutar el pipeline en otra máquina, adapta esas rutas en `src/agents.py`, `src/youtube.py` y, si corresponde, los valores de FFmpeg en `main.py` y los módulos de producción. `requirements.txt` fija, entre otras dependencias, una versión de PyTorch con CUDA 12.1; la instalación debe ser compatible con el sistema operativo y la GPU disponibles.
 
 ## Instalación
 
+Desde la raíz del repositorio, crea y activa un entorno virtual. En Linux/macOS:
+
 ```bash
-cd /ruta/al/proyecto
-pip install -r requirements.txt
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 ```
 
-Si aún no tienes los modelos necesarios, descárgalos:
+En Windows, activa el entorno con:
+
+```powershell
+py -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+Descarga los modelos de Ollama:
 
 ```bash
+ollama pull qwen3.5:9b
 ollama pull qwen3:8b
 ollama pull qwen3-vl:8b
 ```
 
-> Los nombres de los modelos se definen en [src/agents.py](src/agents.py). Si cambias tu configuración local, ajusta esos valores ahí.
-
----
+Los nombres y parámetros de los modelos se configuran en [src/agents.py](src/agents.py). La primera carga de OmniVoice también puede descargar sus pesos desde Hugging Face.
 
 ## Ejecución
 
@@ -164,35 +99,31 @@ ollama pull qwen3-vl:8b
 python main.py
 ```
 
-Este comando arranca el pipeline completo y genera el episodio principal, así como archivos auxiliares y metadata relacionados.
+Este comando ejecuta el pipeline completo y, al final, intenta publicar en YouTube. No es un modo de prueba: revisa las rutas, los recursos, la sesión de Chrome y los datos generados antes de lanzarlo. El punto de entrada actual llama directamente a `flow()`.
 
----
+Los principales archivos de salida son:
+
+- `script_dict.json`: guion y datos de las secciones.
+- `seo_dict.json`: títulos, descripciones y hashtags.
+- `video/episode.mp4`: episodio horizontal.
+- `video/shorts/`: Shorts generados.
+- `assets/miniature/miniature_out.jpg`: miniatura del episodio.
+
+El flujo borra al inicio los vídeos y la miniatura anteriores y, antes de publicar, elimina las imágenes y los audios temporales. Conserva los archivos de salida indicados.
 
 ## Contexto editorial
 
-Los archivos dentro de [context/](context) no son solo documentación; forman parte del comportamiento del sistema. Definen:
+Los archivos de [context/](context/) se incorporan a las instrucciones de los agentes y afectan a la selección y redacción:
 
-- la identidad del programa
-- los criterios de selección de noticias
-- los estándares de calidad editorial
-- la estructura del guion
-- el tono y estilo del texto
-
-Esto permite adaptar el producto sin cambiar la lógica central del pipeline.
-
----
-
-## Consideraciones importantes
-
-- El proyecto está preparado para ejecutarse localmente con modelos y herramientas en el mismo entorno.
-- Requiere dependencias de sistema como FFmpeg y Chrome/Chromium.
-- Está pensado para automatizar la generación de contenido periodístico y audiovisual de forma reproducible.
-- El sistema es extensible: puedes ajustar agentes, prompts, fuentes de noticias y flujo de publicación según tu caso de uso.- La publicación diaria del contenido se realiza en el canal de YouTube: https://www.youtube.com/@MacroDiario
----
+- `editorial.md`: identidad, audiencia y misión.
+- `filter_criteria.md`: prioridades y exclusiones de noticias.
+- `standards.md`: validación factual de los resúmenes.
+- `structure.md`: estructura prevista para el episodio.
+- `style.md`: tono y registro.
 
 ## Autor
 
 Iago Rivadulla
 
-- GitHub: https://github.com/iagorivadulla
-- LinkedIn: https://linkedin.com/in/iagorivadulla
+- [GitHub](https://github.com/iagorivadulla)
+- [LinkedIn](https://linkedin.com/in/iagorivadulla)
