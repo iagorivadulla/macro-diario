@@ -62,7 +62,7 @@ def read_feed_eleconomista():
 
     news = []
 
-    for i in range(1, 5):
+    for i in range(1, 4):
         url = f'https://www.eleconomista.es/noticias/economia/Pagina/{i}'
 
         driver = webdriver.Chrome()
@@ -82,7 +82,7 @@ def read_feed_eleconomista():
 
             news.append({
                 'title': title,
-                'link': link.replace('//', 'https://'),
+                'link': link.replace('//', 'http://'),
             })
 
     return news
